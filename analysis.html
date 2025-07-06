@@ -12,23 +12,18 @@
             font-family: 'Inter', sans-serif;
             background-color: #eaf2f8; /* 기본 배경색 */
             overflow-x: hidden; /* 가로 스크롤 방지 */
+            overflow-y: auto; /* 세로 스크롤 허용 */
         }
-        /* 노란색 계열 그라데이션 배경 */
+        /* 기존 노란색 계열 그라데이션 배경을 유지하면서 더 부드럽게 */
         .section-gradient-yellow {
-            background: linear-gradient(to bottom, #FFD700, #FFFFFF); /* 황금색에서 흰색으로 */
+            background: linear-gradient(to bottom, #FFD700, #FFE066); /* 황금색에서 더 밝은 노란색으로 */
         }
-        .text-shadow-lg {
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 효과를 더 부드럽게 */
         }
-        /* H1 태그를 위한 텍스트 그라데이션 및 그림자 스타일 */
-        .h1-gradient-text {
-            background: linear-gradient(to right, #FFD700, #FFA500); /* 황금색에서 주황색으로 */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent; /* Fallback for non-webkit browsers */
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)); /* 선명한 그림자 */
-        }
+        /* H1 태그를 위한 텍스트 그라데이션 및 그림자 스타일 - 흰색으로 변경 */
+        /* review.html의 스타일을 참고하여 직접 text-white와 text-shadow를 적용하도록 변경 */
+        /* .h1-white-text 클래스는 더 이상 필요 없음 */
 
         /* 탭 버튼 스타일 */
         .tab-button {
@@ -47,13 +42,16 @@
             background-color: #e5e7eb; /* Lighter gray on hover */
         }
 
-        /* 분석 카드 스타일 */
+        /* 분석 카드 스타일 (흰색 배경 유지, 그림자 강화) */
         .analysis-card {
             background-color: #ffffff;
             border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* shadow-lg보다 강한 그림자 */
             padding: 1.5rem; /* p-6 */
-            border: 1px solid #e5e7eb; /* border-gray-200 */
+            transition: transform 0.3s ease-in-out; /* 호버 효과 추가 */
+        }
+        .analysis-card:hover {
+            transform: translateY(-5px); /* 호버 시 살짝 위로 이동 */
         }
 
         /* 그래프 바 스타일 */
@@ -73,6 +71,47 @@
         .bar-yellow { background-color: #fbbf24; /* Yellow-400 */ }
         .bar-blue { background-color: #3b82f6; /* Blue-500 */ }
         .bar-green { background-color: #10b981; /* Green-600 */ }
+        
+        /* 커스텀 메시지 박스 스타일 (기존 평가하기 페이지 스타일 가져옴) */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .message-box-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box-content {
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .message-box-overlay.visible .message-box-content {
+            transform: scale(1);
+        }
+        .message-box-content p {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -101,25 +140,27 @@
     </header>
 
     <!-- Main Content: Analysis Page -->
-    <div id="analysisPageContent" class="py-16 md:py-24 px-4 section-gradient-yellow">
-        <div class="container mx-auto max-w-4xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-800 text-center leading-tight">
-                <span class="block h1-gradient-text">분석보기</span>
+    <div id="analysisPageContent" class="py-16 md:py-24 px-4 section-gradient-yellow text-white text-center">
+        <div class="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">
+                오늘의 메뉴 데이터 분석
             </h1>
-            <p class="text-xl text-gray-600 text-center mb-10">오늘의 메뉴 데이터를 분석하여 유용한 정보를 얻으세요.</p>
+            <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow">
+                맛있는 식사를 하셨나요? 오늘 드신 메뉴에 대한 소중한 의견을 남겨주세요.
+            </p>
 
             <!-- Tab Buttons for Monthly and Personal Analysis -->
-            <div class="flex justify-center mb-10 space-x-4">
-                <button type="button" id="monthlyAnalysisBtn" class="tab-button selected py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95">
+            <div class="flex justify-center mb-10 space-x-4 w-full max-w-2xl">
+                <button type="button" id="monthlyAnalysisBtn" class="tab-button selected py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1">
                     월간 분석
                 </button>
-                <button type="button" id="personalAnalysisBtn" class="tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95">
+                <button type="button" id="personalAnalysisBtn" class="tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1">
                     개인 분석
                 </button>
             </div>
 
             <!-- Analysis Content Area -->
-            <div id="analysisContent">
+            <div id="analysisContent" class="w-full">
                 <!-- Content will be dynamically loaded here -->
             </div>
         </div>
@@ -141,7 +182,6 @@
         // Custom Message Box elements
         const messageBoxOverlay = document.getElementById('messageBoxOverlay');
         const messageBoxText = document.getElementById('messageBoxText');
-        // const messageBoxOkButton = document.getElementById('messageBoxOkButton'); // '확인' 버튼 제거됨
 
         /**
          * Function to display a custom message box
@@ -282,11 +322,10 @@
          */
         function renderMonthlyAnalysis(data) {
             analysisContentDiv.innerHTML = `
-                <div class="space-y-8">
-                    <!-- 월간 통계 요약 -->
-                    <div class="analysis-card">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">월간 통계 요약</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
                             <p><strong>이번 달 방문자:</strong> ${data.monthlyVisitors.current}명 (지난 달 ${data.monthlyVisitors.previous}명)</p>
                             <p><strong>총 누적 방문자:</strong> ${data.monthlyVisitors.totalCumulative}명</p>
                             <p><strong>이번 달 평가 수:</strong> ${data.cumulativeEvaluations.currentMonth}건</p>
@@ -295,10 +334,9 @@
                         </div>
                     </div>
 
-                    <!-- Top 5 음식 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 TOP 5 음식</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${data.topFoods.map(food => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${food.name}</span>
@@ -311,10 +349,9 @@
                         </div>
                     </div>
 
-                    <!-- Worst 5 음식 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 WORST 5 음식</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${data.worstFoods.map(food => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${food.name}</span>
@@ -327,10 +364,9 @@
                         </div>
                     </div>
 
-                    <!-- 자주 방문한 사용자 -->
-                    <div class="analysis-card">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">자주 방문한 사용자</h2>
-                        <ul class="list-disc list-inside space-y-2 text-lg">
+                        <ul class="list-disc list-inside space-y-2 text-lg text-gray-800">
                             ${data.frequentVisitors.map(visitor => `
                                 <li><strong>${visitor.name}</strong>: ${visitor.visits}회 방문 (마지막 방문: ${visitor.lastVisit})</li>
                             `).join('')}
@@ -359,21 +395,19 @@
             const maxTagCount = Math.max(...tagStats.map(stat => stat.count));
 
             analysisContentDiv.innerHTML = `
-                <div class="space-y-8">
-                    <!-- 사용자 요약 -->
-                    <div class="analysis-card">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">내 리뷰 요약</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
                             <p><strong>평균 점수:</strong> ${userSummary.avgScore.toFixed(2)} / 5</p>
                             <p><strong>총 리뷰 수:</strong> ${userSummary.totalReviews}건</p>
                             <p><strong>사전 투표 수:</strong> ${userSummary.preVoteCount}회</p>
                         </div>
                     </div>
 
-                    <!-- 가장 좋아하는 음식 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">가장 좋아하는 음식 TOP 5</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${bestFoods.map(food => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${food.foodName}</span>
@@ -386,10 +420,9 @@
                         </div>
                     </div>
 
-                    <!-- 가장 싫어하는 음식 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">가장 싫어하는 음식 WORST 5</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${worstFoods.map(food => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${food.foodName}</span>
@@ -402,10 +435,9 @@
                         </div>
                     </div>
 
-                    <!-- 카테고리별 통계 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">카테고리별 리뷰 통계</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${categoryStats.map(stat => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${stat.category}</span>
@@ -418,10 +450,9 @@
                         </div>
                     </div>
 
-                    <!-- 태그별 통계 -->
                     <div class="analysis-card">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">태그별 리뷰 통계</h2>
-                        <div class="space-y-3">
+                        <div class="space-y-3 text-gray-800">
                             ${tagStats.map(stat => `
                                 <div class="flex items-center">
                                     <span class="w-1/4 text-left font-medium">${stat.tag}</span>
@@ -434,26 +465,23 @@
                         </div>
                     </div>
                     
-                    <!-- 자주 사용한 리뷰 단어 -->
-                    <div class="analysis-card">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">자주 사용한 리뷰 단어</h2>
-                        <ul class="list-disc list-inside space-y-2 text-lg flex flex-wrap gap-x-4">
+                        <ul class="list-disc list-inside space-y-2 text-lg flex flex-wrap gap-x-4 text-gray-800">
                             ${reviewWords.map(word => `
                                 <li><strong>${word.word}</strong>: ${word.count}회</li>
                             `).join('')}
                         </ul>
                     </div>
 
-                    <!-- 사용자 인사이트 -->
-                    <div class="analysis-card">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">나의 식습관 인사이트</h2>
-                        <p class="text-lg">${insight.insight}</p>
+                        <p class="text-lg text-gray-800">${insight.insight}</p>
                     </div>
 
-                    <!-- 그룹 비교 -->
-                    <div class="analysis-card">
+                    <div class="analysis-card col-span-full">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">전체 사용자 그룹 비교</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
                             <p><strong>내 평균 점수:</strong> ${groupComparison.userAvgScore.toFixed(2)}</p>
                             <p><strong>전체 그룹 평균 점수:</strong> ${groupComparison.groupAvgScore.toFixed(2)}</p>
                             <p><strong>내 다양성 점수:</strong> ${groupComparison.userDiversityScore.toFixed(1)}</p>

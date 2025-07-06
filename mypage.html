@@ -14,23 +14,18 @@
             font-family: 'Inter', sans-serif;
             background-color: #eaf2f8; /* 기본 배경색 */
             overflow-x: hidden; /* 가로 스크롤 방지 */
+            overflow-y: auto; /* 세로 스크롤 허용 */
         }
         /* 밝은 남보라색 계열 그라데이션 배경 */
         .section-gradient-navy-blue {
             background: linear-gradient(to bottom, #AEC6F7, #FFFFFF); /* 연한 남보라색에서 흰색으로 */
         }
-        .text-shadow-lg {
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        /* review.html의 text-shadow와 동일하게 적용 */
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
-        /* H1 태그를 위한 텍스트 그라데이션 및 그림자 스타일 */
-        .h1-gradient-text {
-            background: linear-gradient(to right, #4169E1, #6A5ACD); /* 로얄블루에서 슬레이트블루로 */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent; /* Fallback for non-webkit browsers */
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)); /* 선명한 그림자 */
-        }
+        /* H1 태그를 위한 텍스트 스타일 - review.html과 동일하게 제거 */
+        /* .h1-white-text 클래스는 더 이상 필요 없음 */
 
         /* 커스텀 메시지 박스 스타일 */
         .message-box-overlay {
@@ -87,14 +82,19 @@
             background-color: #365EC7; /* 진한 남보라색 */
         }
 
-        /* 프로필 및 친구 목록 카드 스타일 */
+        /* 프로필 및 친구 목록 카드 스타일 - analysis-card와 유사하게 조정 */
         .profile-card, .friends-card {
             background-color: #ffffff;
             border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* analysis-card와 동일한 그림자 */
             padding: 1.5rem; /* p-6 */
-            border: 1px solid #e5e7eb; /* border-gray-200 */
+            /* border: 1px solid #e5e7eb; /* border-gray-200 */ /* 필요시 추가 */
+            transition: transform 0.3s ease-in-out; /* 호버 효과 추가 */
         }
+        .profile-card:hover, .friends-card:hover {
+            transform: translateY(-5px); /* 호버 시 살짝 위로 이동 */
+        }
+
         .profile-pic {
             width: 120px;
             height: 120px;
@@ -152,7 +152,7 @@
                 <ul class="flex space-x-6">
                     <li><a href="main.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
                     <li><a href="review.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</a></li>
-                    <li><a href="analysis.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석하기</a></li>
+                    <li><a href="analysis.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</a></li>
                     <li><a href="mypage.html" class="text-blue-600 font-bold rounded-lg">마이페이지</a></li>
                 </ul>
             </nav>
@@ -160,42 +160,44 @@
     </header>
 
     <!-- Main Content: MyPage -->
-    <div id="mypageContent" class="py-16 md:py-24 px-4 section-gradient-navy-blue">
-        <div class="container mx-auto max-w-2xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-800 text-center leading-tight">
-                <span class="block h1-gradient-text">마이페이지</span>
+    <div id="mypageContent" class="py-16 md:py-24 px-4 section-gradient-navy-blue text-white text-center">
+        <!-- 기존 container div의 배경, 그림자, 패딩, 테두리 제거 -->
+        <div class="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">
+                마이페이지
             </h1>
-            <p class="text-xl text-gray-600 text-center mb-10">내 정보와 친구들을 관리하세요.</p>
+            <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow">내 정보와 친구들을 관리하세요.</p>
 
             <!-- Not Logged In State -->
             <div id="notLoggedIn" class="text-center space-y-6">
-                <p class="text-lg text-gray-700">로그인이 필요합니다.</p>
+                <p class="text-lg text-white text-shadow">로그인이 필요합니다.</p>
                 <button id="googleSignInBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl">
                     <i class="fab fa-google mr-3"></i> Google로 로그인 (데모)
                 </button>
             </div>
 
             <!-- Logged In State -->
-            <div id="loggedIn" class="hidden space-y-10">
-                <p class="text-sm text-gray-500 text-center">사용자 ID: <span id="displayUserId" class="font-mono text-gray-600 text-xs"></span></p>
+            <div id="loggedIn" class="hidden space-y-10 w-full">
+                <p class="text-sm text-white text-center text-shadow">사용자 ID: <span id="displayUserId" class="font-mono text-white text-xs"></span></p>
 
                 <!-- Profile Section -->
                 <div class="profile-card text-center space-y-4">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">내 프로필</h2>
+                    
                     <img id="profilePic" src="https://placehold.co/120x120/cccccc/333333?text=Profile" alt="프로필 사진" class="profile-pic mx-auto">
                     
                     <div class="space-y-3">
                         <div>
-                            <label for="profileName" class="block text-gray-600 text-sm font-medium">이름</label>
-                            <input type="text" id="profileName" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                            <label for="profileName" class="block text-gray-800 text-sm font-medium">이름</label>
+                            <input type="text" id="profileName" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center text-gray-800" disabled>
                         </div>
                         <div>
-                            <label for="profileClass" class="block text-gray-600 text-sm font-medium">반</label>
-                            <input type="text" id="profileClass" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                            <label for="profileClass" class="block text-gray-800 text-sm font-medium">반</label>
+                            <input type="text" id="profileClass" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center text-gray-800" disabled>
                         </div>
                         <div>
-                            <label for="profileStudentId" class="block text-gray-600 text-sm font-medium">기수</label>
-                            <input type="text" id="profileStudentId" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                            <label for="profileStudentId" class="block text-gray-800 text-sm font-medium">기수</label>
+                            <input type="text" id="profileStudentId" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center text-gray-800" disabled>
                         </div>
                     </div>
                     
@@ -218,7 +220,7 @@
                     
                     <!-- Add Friend -->
                     <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
-                        <input type="text" id="friendNameInput" placeholder="추가할 친구 이름" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg">
+                        <input type="text" id="friendNameInput" placeholder="추가할 친구 이름" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg text-gray-800">
                         <button id="addFriendBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg">
                             <i class="fas fa-user-plus mr-2"></i> 친구 추가
                         </button>
@@ -404,9 +406,10 @@
                 noFriendsMessage.classList.add('hidden');
                 currentUser.friends.forEach(friend => {
                     const friendElement = document.createElement('div');
+                    // friendName 스팬에 text-gray-800 클래스 추가
                     friendElement.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200';
                     friendElement.innerHTML = `
-                        <span class="text-lg font-medium">${friend.friendName}</span>
+                        <span class="text-lg font-medium text-gray-800">${friend.friendName}</span>
                         <button data-friend-id="${friend.id}" class="delete-friend-btn text-red-500 hover:text-red-700 transition-colors duration-200">
                             <i class="fas fa-user-times"></i> 삭제
                         </button>

@@ -11,22 +11,14 @@
             font-family: 'Inter', sans-serif;
             background-color: #eaf2f8; /* 배경색 유지 */
             overflow-x: hidden; /* 가로 스크롤 방지 */
+            overflow-y: auto; /* 세로 스크롤 허용 */
         }
-        /* 기존 text-shadow를 더 강하게 또는 다르게 정의할 수 있습니다. */
-        .text-shadow-lg {
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        /* review.html의 text-shadow와 동일하게 적용 */
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 효과를 더 부드럽게 */
         }
-        /* H1 태그를 위한 새로운 텍스트 그라데이션 및 그림자 스타일 */
-        .h1-gradient-text {
-            /* 배경 그라데이션 (section-gradient-green)과 어울리는 녹색 계열 그라데이션으로 변경 */
-            background: linear-gradient(to right, #34d399, #10b981); /* 연한 녹색에서 진한 녹색으로 */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent; /* Fallback for non-webkit browsers */
-            /* 그림자 강도를 4px 4px 8px rgba(0, 0, 0, 0.3)에서 2px 2px 4px rgba(0, 0, 0, 0.2)로 조정 */
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)); /* 더 선명하고 부드러운 그림자 */
-        }
+        /* H1 태그를 위한 새로운 텍스트 그라데이션 및 그림자 스타일 - review.html과 동일하게 제거 */
+        /* .h1-gradient-text 클래스는 더 이상 필요 없음 */
 
         /* 별점 아이콘 색상 */
         .star-rating-item .star {
@@ -112,6 +104,21 @@
         .regret-button:hover:not(.selected) {
             background-color: #e5e7eb; /* Lighter gray on hover */
         }
+
+        /* 분석 카드 스타일 (흰색 배경 유지, 그림자 강화) - analysis-page에서 가져옴 */
+        .analysis-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* shadow-lg보다 강한 그림자 */
+            padding: 1.5rem; /* p-6 */
+            transition: transform 0.3s ease-in-out; /* 호버 효과 추가 */
+        }
+        .analysis-card:hover {
+            transform: translateY(-5px); /* 호버 시 살짝 위로 이동 */
+        }
+
+        /* H1 태그를 위한 텍스트 스타일 - review.html과 동일하게 제거 */
+        /* .h1-white-text 클래스는 더 이상 필요 없음 */
     </style>
 </head>
 <body>
@@ -137,21 +144,22 @@
         </div>
     </header>
 
-    <div id="detailedEvaluationPageContent" class="py-16 md:py-24 px-4 section-gradient-green">
-        <div class="container mx-auto max-w-2xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-800 text-center leading-tight">
-                <span class="block h1-gradient-text">이 메뉴 어때요?</span>
+    <div id="detailedEvaluationPageContent" class="py-16 md:py-24 px-4 section-gradient-green text-white text-center">
+        <!-- 기존 container div의 배경, 그림자, 패딩, 테두리 제거 -->
+        <div class="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">
+                이 메뉴 어때요?
             </h1>
-            <p class="text-xl text-gray-600 text-center mb-10">오늘의 메뉴에 대한 당신의 소중한 의견을 들려주세요.</p>
+            <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow">오늘의 메뉴에 대한 당신의 소중한 의견을 들려주세요.</p>
 
-            <form id="evaluationForm" class="space-y-10">
+            <form id="evaluationForm" class="space-y-8 w-full"> <!-- 카드 간 간격을 위해 space-y-8 적용 -->
                 <!-- 개별 항목 평가 섹션 -->
-                <div id="individualItemEvaluations" class="space-y-8">
+                <div id="individualItemEvaluations" class="space-y-4">
                     <!-- 메뉴 항목들이 여기에 동적으로 렌더링됩니다. -->
                 </div>
 
                 <!-- 메뉴 선택 후회 여부 섹션 -->
-                <div class="mt-12 pt-8 border-t border-gray-200">
+                <div class="analysis-card"> <!-- analysis-card로 감싸기 -->
                     <label class="block text-2xl font-bold text-gray-800 mb-4 text-center">
                         해당 메뉴 선택에 만족하시나요?
                     </label>
@@ -167,13 +175,13 @@
                 </div>
 
                 <!-- 간략한 한 줄 의견 섹션 -->
-                <div class="mt-12 pt-8 border-t border-gray-200">
+                <div class="analysis-card"> <!-- analysis-card로 감싸기 -->
                     <label for="overallReviewText" class="block text-2xl font-bold text-gray-800 mb-4 text-center">
                         간략한 한 줄 의견
                     </label>
                     <textarea id="overallReviewText" name="overallReviewText" rows="6" 
-                              class="w-full p-4 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg placeholder-gray-400 resize-y" 
-                              placeholder="오늘의 메뉴 1에 대한 솔직한 의견을 작성해주세요. (예: 맛, 양, 서비스, 개선점 등)"></textarea>
+                                class="w-full p-4 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg placeholder-gray-400 resize-y" 
+                                placeholder="오늘의 메뉴 1에 대한 솔직한 의견을 작성해주세요. (예: 맛, 양, 서비스, 개선점 등)"></textarea>
                 </div>
 
                 <div class="text-center mt-10">
@@ -230,6 +238,7 @@
         function hideMessage() {
             messageBoxOverlay.classList.remove('visible');
             document.body.style.overflow = 'auto'; // 본문 스크롤 허용
+            messageBoxOverlay.onclick = null; // 이벤트 리스너 제거
         }
 
         // 메뉴 데이터 (이 페이지는 '오늘의 메뉴 1'에 대한 데이터를 가집니다)
@@ -293,9 +302,8 @@
 
             items.forEach(item => {
                 const itemDiv = document.createElement('div');
-                // 기존 flex-col items-center를 flex justify-between items-center로 변경
-                // 메뉴 이름과 별점 컨테이너를 양쪽으로 분리
-                itemDiv.className = 'bg-gray-50 p-6 rounded-lg shadow-md flex justify-between items-center border border-gray-200'; 
+                // analysis-card 클래스 적용 및 내부 요소 정렬
+                itemDiv.className = 'analysis-card flex justify-between items-center'; 
                 itemDiv.innerHTML = `
                     <!-- 메뉴 이름과 타입 -->
                     <div class="flex-grow text-left">

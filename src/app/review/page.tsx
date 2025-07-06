@@ -223,7 +223,7 @@ export default function ReviewPage() {
               <li><a href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
               <li><a href="/review" className="text-blue-600 font-bold rounded-lg">평가하기</a></li>
               <li><a href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</a></li>
-              <li><a href="/my" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>
+              <li><a href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>
             </ul>
           </nav>
         </div>

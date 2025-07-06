@@ -6,6 +6,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 // <a href="..."> 대신 <Link href="...">를 사용하는 것을 권장합니다.
 // import Link from 'next/link';
 
+/**
+ * 쿠키에서 특정 키의 값을 가져오는 함수
+ * @param key 가져올 쿠키의 키
+ * @returns 쿠키 값 또는 undefined
+ */
+function getCookieValue(key: string): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : undefined;
+}
+
 export default function AnalysisPage() {
   // 활성 탭 상태 관리: 'monthly' 또는 'personal'
   const [activeTab, setActiveTab] = useState('monthly');
@@ -60,12 +71,12 @@ export default function AnalysisPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const accessToken = localStorage.getItem('accessToken'); // Access Token을 localStorage에서 가져옵니다.
+      const accessToken = getCookieValue('accessToken'); // 쿠키에서 Access Token을 가져옵니다.
       if (!accessToken) {
         throw new Error('로그인이 필요합니다.');
       }
 
-      const response = await fetch('/api/analysis/personal', {
+      const response = await fetch(`${BACKEND_API_BASE_URL}/api/analysis/personal`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
@@ -86,7 +97,7 @@ export default function AnalysisPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [BACKEND_API_BASE_URL]);
 
   // 탭 변경 시 데이터 로딩
   useEffect(() => {

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 메뉴 추천</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eaf2f8; /* Slightly more vibrant light blue-gray background */
+        }
+        /* More Vibrant Pastel Blue Gradient (사전 투표 모달) */
+        .section-gradient-blue {
+            background: linear-gradient(to right, #87CEEB, #ADD8E6); /* Sky Blue to Light Blue */
+        }
+        /* Sunset Gradient (평가 모달) */
+        .section-gradient-sunset {
+            background: linear-gradient(to right, #FF7E5F, #FEB47B); /* Sunset Orange to Peach */
+        }
+        /* More Vibrant Pastel Orange/Pink Gradient (메인 콘텐츠 양식 섹션) */
+        .section-gradient-gold {
+            background: linear-gradient(to right, #FFDAB9, #FFC0CB); /* Peach Puff to Pink */
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 효과를 더 부드럽게 */
+        }
+        /* 추가적인 스타일 (선택된 카드 강조) */
+        .menu-card.selected {
+            border: 4px solid #FF8C42; /* 기존 하이라이팅 색상 (기본값) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 사전 투표 모달 내 선택된 카드 강조 (더 짙은 푸른색) */
+        #preVoteModal .menu-card.selected {
+            border: 4px solid #347BBF; /* 배경과 어울리는 짙은 푸른색 */
+        }
+
+        /* 평가 모달 내 선택된 카드 강조 (더 짙은 노을색) */
+        #evaluationModal .menu-card.selected {
+            border: 4px solid #CC4444; /* 배경과 어울리는 짙은 노을색 (붉은 계열) */
+        }
+
+        /* 메뉴 리스트 스타일 */
+        .menu-list {
+            list-style: none; /* 기본 리스트 스타일 제거 */
+            padding: 0;
+            margin-top: 1rem;
+            text-align: left; /* 텍스트 왼쪽 정렬 */
+            width: 100%; /* 부모 너비에 맞춤 */
+        }
+        .menu-list li {
+            background-color: #f5f8fa; /* 더 부드러운 배경색 (거의 흰색) */
+            color: #4a5568; /* 텍스트 색상 조정 */
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="mainContent">
+        <header class="bg-white shadow-md py-4">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</div>
+                <nav>
+                    <ul class="flex space-x-6">
+                        <li><a href="main.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
+                        <li><a href="review.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</a></li>
+                        <li><a href="analysis.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</a></li>
+                        <li><a href="mypage.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section class="bg-white py-16 md:py-24 rounded-lg shadow-inner mx-4 my-8">
+            <div class="container mx-auto px-4 flex flex-col md:flex-row items-center md:space-x-12">
+                <div class="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+                    <h2 class="text-3xl md:text-5xl font-bold text-gray-800 mb-4">한식 대표 메뉴</h2>
+                    <p class="text-gray-600 text-lg mb-6">
+                        깊은 맛과 정성이 담긴 한국의 전통 요리들을 경험해보세요.
+                        오랜 시간 사랑받아 온 익숙하면서도 특별한 맛입니다.
+                    </p>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
+                        더 많은 한식 보기
+                    </button>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://placehold.co/500x500/FFD700/FFFFFF?text=한식+대표" alt="한식 대표 이미지" class="w-full max-w-md rounded-lg shadow-xl">
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gradient-gold text-white py-16 md:py-24 rounded-lg shadow-inner mx-4 my-8">
+            <div class="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center md:space-x-12">
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://placehold.co/500x500/DAA520/FFFFFF?text=양식+대표" alt="양식 대표 이미지" class="w-full max-w-md rounded-lg shadow-xl">
+                </div>
+                <div class="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+                    <h2 class="text-3xl md:text-5xl font-bold text-shadow mb-4">양식 대표 메뉴</h2>
+                    <p class="text-white text-lg mb-6">
+                        세계 각국의 다채로운 풍미를 담은 양식 요리들.
+                        특별한 날, 특별한 경험을 선사합니다.
+                    </p>
+                    <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
+                        더 많은 양식 보기
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="friendsChoiceSection" class="bg-gray-100 py-16 md:py-24 rounded-lg shadow-inner mx-4 my-8">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">친구들은 무엇을 선택했을까요?</h2>
+                <p class="text-gray-600 text-lg mb-12 max-w-3xl mx-auto">
+                    친구들의 솔직한 평가와 선택을 통해 새로운 메뉴를 발견해보세요.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-4">
+                            <img src="https://placehold.co/50x50/cccccc/ffffff?text=친구1" alt="친구 프로필" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-bold text-lg">김철수</p>
+                                <p class="text-gray-500 text-sm">한식 메뉴 선택</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic mb-4">"역시 한식은 언제나 최고죠! 든든하고 맛있었어요."</p>
+                        <div class="flex justify-center text-yellow-400">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current text-gray-300" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-4">
+                            <img src="https://placehold.co/50x50/cccccc/ffffff?text=친구2" alt="친구 프로필" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-bold text-lg">이지혜</p>
+                                <p class="text-gray-500 text-sm">양식 메뉴 선택</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic mb-4">"파스타와 스테이크 조합은 환상적이었어요! 분위기도 좋았고요."</p>
+                        <div class="flex justify-center text-yellow-400">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-4">
+                            <img src="https://placehold.co/50x50/cccccc/ffffff?text=친구3" alt="친구 프로필" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-bold text-lg">박민준</p>
+                                <p class="text-gray-500 text-sm">한식 메뉴 선택</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic mb-4">"김치찌개는 역시 최고! 얼큰하고 든든해서 힘이 났어요."</p>
+                        <div class="flex justify-center text-yellow-400">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                            <svg class="w-5 h-5 fill-current text-gray-300" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white py-16 md:py-24 rounded-lg shadow-inner mx-4 my-8">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8">우리의 맛집을 만나보세요!</h2>
+                <p class="text-gray-600 text-lg mb-12 max-w-3xl mx-auto">
+                    가까운 매장이나 식당에서 저희 메뉴를 만나보세요. 아래 지도에서 위치를 확인하실 수 있습니다.
+                </p>
+                <div class="w-full max-w-4xl mx-auto bg-gray-200 rounded-lg shadow-lg overflow-hidden">
+                    <img src="https://placehold.co/800x450/E0E0E0/666666?text=지도+표시+영역" alt="지도 표시 영역" class="w-full h-auto object-cover rounded-lg">
+                </div>
+                <div class="mt-8">
+                    <p class="text-gray-700 text-lg font-semibold">주소: 대한민국 서울특별시 강남구 테헤란로 123</p>
+                    <p class="text-gray-700 text-lg font-semibold">전화: 02-1234-5678</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-gray-800 text-white py-8 rounded-t-lg">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
+                <div class="flex justify-center space-x-6 mt-4">
+                    <a href="#" class="text-gray-400 hover:text-white rounded-lg">개인정보처리방침</a>
+                    <a href="#" class="text-gray-400 hover:text-white rounded-lg">이용약관</a>
+                    <a href="#" class="text-gray-400 hover:text-white rounded-lg">문의</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // main.html의 스크립트에서 모달 관련 로직 제거
+        // 페이지 로드 시 특별한 동작 없이 바로 메인 콘텐츠 표시
+    </script>
+</body>
+</html>

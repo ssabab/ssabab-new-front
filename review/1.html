@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이 메뉴 어때요?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eaf2f8; /* 배경색 유지 */
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+        }
+        /* 기존 text-shadow를 더 강하게 또는 다르게 정의할 수 있습니다. */
+        .text-shadow-lg {
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        }
+        /* H1 태그를 위한 새로운 텍스트 그라데이션 및 그림자 스타일 */
+        .h1-gradient-text {
+            /* 배경 그라데이션 (section-gradient-green)과 어울리는 녹색 계열 그라데이션으로 변경 */
+            background: linear-gradient(to right, #34d399, #10b981); /* 연한 녹색에서 진한 녹색으로 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent; /* Fallback for non-webkit browsers */
+            /* 그림자 강도를 4px 4px 8px rgba(0, 0, 0, 0.3)에서 2px 2px 4px rgba(0, 0, 0, 0.2)로 조정 */
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)); /* 더 선명하고 부드러운 그림자 */
+        }
+
+        /* 별점 아이콘 색상 */
+        .star-rating-item .star {
+            color: #d1d5db; /* 기본 회색 */
+            transition: color 0.2s ease; /* 색상 변경 시 부드러운 전환 효과 */
+        }
+        .star-rating-item .star.filled {
+            color: #fbbf24; /* 채워진 노란색 */
+        }
+
+        /* 커스텀 메시지 박스 스타일 */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .message-box-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box-content {
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .message-box-overlay.visible .message-box-content {
+            transform: scale(1);
+        }
+        .message-box-content p {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .message-box-content button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        .message-box-content button:hover {
+            background-color: #45a049;
+        }
+        /* 초록색 그라데이션 배경 (이미지 참고) */
+        .section-gradient-green {
+            background: linear-gradient(to bottom, #BFF090, #FFFFFF); /* 이미지와 유사한 연두색에서 흰색으로 */
+        }
+
+        /* 후회 여부 선택 버튼 스타일 */
+        .regret-button {
+            background-color: #f3f4f6; /* Light gray */
+            color: #4b5563; /* Darker gray text */
+            border: 1px solid #d1d5db; /* Gray border */
+            transition: all 0.2s ease;
+        }
+        .regret-button.selected {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); /* Blue shadow */
+        }
+        .regret-button:hover:not(.selected) {
+            background-color: #e5e7eb; /* Lighter gray on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="messageBoxOverlay" class="message-box-overlay">
+        <div class="message-box-content">
+            <p id="messageBoxText"></p>
+            <button id="messageBoxOkButton">확인</button>
+        </div>
+    </div>
+
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="../main.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
+                    <li><a href="../review.html" class="text-blue-600 font-bold rounded-lg">평가하기</a></li>
+                    <li><a href="../analysis.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</a></li>
+                    <li><a href="../mypage.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div id="detailedEvaluationPageContent" class="py-16 md:py-24 px-4 section-gradient-green">
+        <div class="container mx-auto max-w-2xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-800 text-center leading-tight">
+                <span class="block h1-gradient-text">이 메뉴 어때요?</span>
+            </h1>
+            <p class="text-xl text-gray-600 text-center mb-10">오늘의 메뉴에 대한 당신의 소중한 의견을 들려주세요.</p>
+
+            <form id="evaluationForm" class="space-y-10">
+                <!-- 개별 항목 평가 섹션 -->
+                <div id="individualItemEvaluations" class="space-y-8">
+                    <!-- 메뉴 항목들이 여기에 동적으로 렌더링됩니다. -->
+                </div>
+
+                <!-- 메뉴 선택 후회 여부 섹션 -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <label class="block text-2xl font-bold text-gray-800 mb-4 text-center">
+                        해당 메뉴 선택에 만족하시나요?
+                    </label>
+                    <div class="flex justify-center space-x-4">
+                        <button type="button" id="regretYes" class="regret-button flex-1 py-3 px-6 rounded-full text-lg font-semibold shadow-md flex items-center justify-center">
+                            <span class="mr-2 text-2xl">👍</span> 네, 다시 선택할래요.
+                        </button>
+                        <button type="button" id="regretNo" class="regret-button flex-1 py-3 px-6 rounded-full text-lg font-semibold shadow-md flex items-center justify-center">
+                            <span class="mr-2 text-2xl">👏</span> 아니요, 다른거 먹을래요.
+                        </button>
+                    </div>
+                    <input type="hidden" id="wouldRegret" name="wouldRegret" value="">
+                </div>
+
+                <!-- 간략한 한 줄 의견 섹션 -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <label for="overallReviewText" class="block text-2xl font-bold text-gray-800 mb-4 text-center">
+                        간략한 한 줄 의견
+                    </label>
+                    <textarea id="overallReviewText" name="overallReviewText" rows="6" 
+                              class="w-full p-4 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg placeholder-gray-400 resize-y" 
+                              placeholder="오늘의 메뉴 1에 대한 솔직한 의견을 작성해주세요. (예: 맛, 양, 서비스, 개선점 등)"></textarea>
+                </div>
+
+                <div class="text-center mt-10">
+                    <button type="submit" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
+                                                 text-white font-bold py-4 px-12 rounded-full shadow-lg 
+                                                 transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl tracking-wide">
+                        평가 제출하기
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8 rounded-t-lg mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 커스텀 메시지 박스 요소
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxOkButton = document.getElementById('messageBoxOkButton');
+
+        /**
+         * 커스텀 메시지 박스를 표시하는 함수
+         * @param {string} message - 표시할 메시지
+         * @param {function} onOkCallback - 확인 버튼 클릭 시 실행할 콜백 함수 (선택 사항)
+         */
+        function showMessage(message, onOkCallback = null) {
+            messageBoxText.textContent = message;
+            messageBoxOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden'; // 본문 스크롤 방지
+
+            // 기존 이벤트 리스너 제거 후 새로운 리스너 추가 (중복 방지)
+            messageBoxOkButton.onclick = null; 
+            messageBoxOkButton.onclick = () => {
+                hideMessage();
+                if (onOkCallback) {
+                    onOkCallback();
+                }
+            };
+        }
+
+        /**
+         * 커스텀 메시지 박스를 숨기는 함수
+         */
+        function hideMessage() {
+            messageBoxOverlay.classList.remove('visible');
+            document.body.style.overflow = 'auto'; // 본문 스크롤 허용
+        }
+
+        // 메뉴 데이터 (이 페이지는 '오늘의 메뉴 1'에 대한 데이터를 가집니다)
+        const currentMenuData = {
+            id: "1",
+            name: "오늘의 메뉴 1",
+            items: [
+                { id: "main1", name: "불고기", type: "주메뉴" },
+                { id: "sub1", name: "된장찌개", type: "서브메뉴" },
+                { id: "side1_1", name: "김치", type: "반찬" },
+                { id: "side1_2", name: "콩나물무침", type: "반찬" },
+                { id: "side1_3", name: "시금치나물", type: "반찬" },
+                { id: "side1_4", name: "어묵볶음", type: "반찬" }
+            ]
+        };
+
+        // DOM 요소 가져오기
+        const evaluationForm = document.getElementById('evaluationForm');
+        const individualItemEvaluationsContainer = document.getElementById('individualItemEvaluations');
+        const overallReviewTextarea = document.getElementById('overallReviewText');
+        const regretYesButton = document.getElementById('regretYes');
+        const regretNoButton = document.getElementById('regretNo');
+        const wouldRegretInput = document.getElementById('wouldRegret');
+
+        // 별점 시각적 표시를 업데이트하는 함수
+        function updateStarRatingVisual(ratingContainer, rating) {
+            const stars = ratingContainer.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('filled');
+                } else {
+                    star.classList.remove('filled');
+                }
+            });
+        }
+
+        // 개별 항목 별점 클릭 이벤트 리스너 설정 함수
+        function setupIndividualStarRatingListeners() {
+            document.querySelectorAll('.star-rating-item').forEach(container => {
+                container.addEventListener('click', (event) => {
+                    const clickedStar = event.target.closest('.star');
+                    if (clickedStar) {
+                        const rating = parseInt(clickedStar.dataset.value);
+                        const itemId = container.dataset.itemId;
+                        const ratingInput = document.getElementById(`rating-${itemId}`);
+                        if (ratingInput) {
+                            ratingInput.value = rating;
+                        }
+                        updateStarRatingVisual(container, rating);
+                    }
+                });
+            });
+        }
+
+        /**
+         * 개별 메뉴 항목 평가 섹션을 동적으로 렌더링하는 함수
+         * @param {Array<Object>} items - 평가할 메뉴 항목 배열
+         */
+        function renderIndividualItemEvaluations(items) {
+            individualItemEvaluationsContainer.innerHTML = ''; // 기존 내용 초기화
+
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                // 기존 flex-col items-center를 flex justify-between items-center로 변경
+                // 메뉴 이름과 별점 컨테이너를 양쪽으로 분리
+                itemDiv.className = 'bg-gray-50 p-6 rounded-lg shadow-md flex justify-between items-center border border-gray-200'; 
+                itemDiv.innerHTML = `
+                    <!-- 메뉴 이름과 타입 -->
+                    <div class="flex-grow text-left">
+                        <label class="block text-2xl font-semibold text-gray-800">
+                            ${item.name} 
+                            <span class="text-gray-500 font-medium text-lg">(${item.type})</span>
+                        </label>
+                    </div>
+                    <!-- 별점 아이콘 -->
+                    <div class="star-rating-item flex justify-center space-x-2 text-4xl cursor-pointer" data-item-id="${item.id}">
+                        <svg class="w-10 h-10 fill-current star" data-value="1" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        <svg class="w-10 h-10 fill-current star" data-value="2" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        <svg class="w-10 h-10 fill-current star" data-value="3" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        <svg class="w-10 h-10 fill-current star" data-value="4" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                        <svg class="w-10 h-10 fill-current star" data-value="5" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z"/></svg>
+                    </div>
+                    <input type="hidden" id="rating-${item.id}" name="rating-${item.id}" value="0">
+                `;
+                individualItemEvaluationsContainer.appendChild(itemDiv);
+            });
+            setupIndividualStarRatingListeners(); // 새로 추가된 별점 시스템에 이벤트 리스너 설정
+        }
+
+        // 후회 여부 버튼 클릭 이벤트 리스너
+        regretYesButton.addEventListener('click', () => {
+            regretYesButton.classList.add('selected');
+            regretNoButton.classList.remove('selected');
+            wouldRegretInput.value = "yes";
+        });
+
+        regretNoButton.addEventListener('click', () => {
+            regretNoButton.classList.add('selected');
+            regretYesButton.classList.remove('selected');
+            wouldRegretInput.value = "no";
+        });
+
+        // 평가 폼 초기화 함수
+        function resetEvaluationForm() {
+            // 모든 별점 및 리뷰 초기화
+            document.querySelectorAll('.star-rating-item').forEach(container => updateStarRatingVisual(container, 0));
+            document.querySelectorAll('input[id^="rating-"]').forEach(input => input.value = "0");
+            overallReviewTextarea.value = "";
+            wouldRegretInput.value = ""; // 후회 여부 초기화
+            regretYesButton.classList.remove('selected');
+            regretNoButton.classList.remove('selected');
+        }
+
+        // 폼 제출 이벤트 리스너
+        evaluationForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // 기본 폼 제출 방지
+
+            const evaluationData = {
+                menuId: currentMenuData.id,
+                menuName: currentMenuData.name,
+                items: [],
+                overallReview: overallReviewTextarea.value.trim(),
+                wouldRegret: wouldRegretInput.value, // 후회 여부 추가
+                timestamp: new Date().toISOString()
+            };
+
+            let allItemsRated = true;
+
+            // 각 메뉴 항목의 평가 데이터 수집
+            currentMenuData.items.forEach(item => {
+                const ratingInput = document.getElementById(`rating-${item.id}`);
+                const rating = parseInt(ratingInput.value);
+
+                if (rating === 0) {
+                    allItemsRated = false;
+                }
+
+                evaluationData.items.push({
+                    id: item.id,
+                    name: item.name,
+                    type: item.type,
+                    rating: rating
+                });
+            });
+
+            // 전체 리뷰 유효성 검사
+            if (evaluationData.overallReview.length < 10) {
+                showMessage("메뉴 전체에 대한 리뷰는 최소 10자 이상 작성해주세요!");
+                return;
+            }
+
+            if (!allItemsRated) {
+                showMessage("모든 메뉴 항목에 별점을 선택해주세요!");
+                return;
+            }
+
+            // 후회 여부 선택 유효성 검사
+            if (evaluationData.wouldRegret === "") {
+                showMessage("해당 메뉴 선택에 만족하시나요? 질문에 답변해주세요!");
+                return;
+            }
+
+            console.log("제출된 평가 데이터:", evaluationData);
+            showMessage("평가가 성공적으로 제출되었습니다! 감사합니다.", () => {
+                // 메시지 확인 후 review.html로 이동 (상위 디렉토리로 이동)
+                window.location.href = '../review.html';
+            });
+
+            // 폼 초기화 (페이지 이동 전까지는 임시로 주석 처리)
+            // resetEvaluationForm(); 
+        });
+
+        // 페이지 로드 시 초기화 및 메뉴 항목 렌더링
+        document.addEventListener('DOMContentLoaded', () => {
+            renderIndividualItemEvaluations(currentMenuData.items);
+            resetEvaluationForm(); // 초기 로드 시 폼 초기화
+        });
+    </script>
+</body>
+</html>

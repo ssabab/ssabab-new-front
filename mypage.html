@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eaf2f8; /* 기본 배경색 */
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+        }
+        /* 밝은 남보라색 계열 그라데이션 배경 */
+        .section-gradient-navy-blue {
+            background: linear-gradient(to bottom, #AEC6F7, #FFFFFF); /* 연한 남보라색에서 흰색으로 */
+        }
+        .text-shadow-lg {
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        }
+        /* H1 태그를 위한 텍스트 그라데이션 및 그림자 스타일 */
+        .h1-gradient-text {
+            background: linear-gradient(to right, #4169E1, #6A5ACD); /* 로얄블루에서 슬레이트블루로 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent; /* Fallback for non-webkit browsers */
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)); /* 선명한 그림자 */
+        }
+
+        /* 커스텀 메시지 박스 스타일 */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .message-box-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box-content {
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .message-box-overlay.visible .message-box-content {
+            transform: scale(1);
+        }
+        .message-box-content p {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .message-box-content button {
+            background-color: #4169E1; /* 남보라색 계열 */
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        .message-box-content button:hover {
+            background-color: #365EC7; /* 진한 남보라색 */
+        }
+
+        /* 프로필 및 친구 목록 카드 스타일 */
+        .profile-card, .friends-card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            padding: 1.5rem; /* p-6 */
+            border: 1px solid #e5e7eb; /* border-gray-200 */
+        }
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #4169E1; /* 남보라색 테두리 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .edit-button {
+            background-color: #4169E1;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .edit-button:hover {
+            background-color: #365EC7;
+        }
+        .save-button {
+            background-color: #10b981; /* Green */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .save-button:hover {
+            background-color: #0c9f6e;
+        }
+        .cancel-button {
+            background-color: #ef4444; /* Red */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .cancel-button:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Message Box -->
+    <div id="messageBoxOverlay" class="message-box-overlay">
+        <div class="message-box-content">
+            <p id="messageBoxText"></p>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="main.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
+                    <li><a href="review.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</a></li>
+                    <li><a href="analysis.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석하기</a></li>
+                    <li><a href="mypage.html" class="text-blue-600 font-bold rounded-lg">마이페이지</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content: MyPage -->
+    <div id="mypageContent" class="py-16 md:py-24 px-4 section-gradient-navy-blue">
+        <div class="container mx-auto max-w-2xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-gray-800 text-center leading-tight">
+                <span class="block h1-gradient-text">마이페이지</span>
+            </h1>
+            <p class="text-xl text-gray-600 text-center mb-10">내 정보와 친구들을 관리하세요.</p>
+
+            <!-- Not Logged In State -->
+            <div id="notLoggedIn" class="text-center space-y-6">
+                <p class="text-lg text-gray-700">로그인이 필요합니다.</p>
+                <button id="googleSignInBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl">
+                    <i class="fab fa-google mr-3"></i> Google로 로그인 (데모)
+                </button>
+            </div>
+
+            <!-- Logged In State -->
+            <div id="loggedIn" class="hidden space-y-10">
+                <p class="text-sm text-gray-500 text-center">사용자 ID: <span id="displayUserId" class="font-mono text-gray-600 text-xs"></span></p>
+
+                <!-- Profile Section -->
+                <div class="profile-card text-center space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">내 프로필</h2>
+                    <img id="profilePic" src="https://placehold.co/120x120/cccccc/333333?text=Profile" alt="프로필 사진" class="profile-pic mx-auto">
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label for="profileName" class="block text-gray-600 text-sm font-medium">이름</label>
+                            <input type="text" id="profileName" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                        </div>
+                        <div>
+                            <label for="profileClass" class="block text-gray-600 text-sm font-medium">반</label>
+                            <input type="text" id="profileClass" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                        </div>
+                        <div>
+                            <label for="profileStudentId" class="block text-gray-600 text-sm font-medium">기수</label>
+                            <input type="text" id="profileStudentId" class="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center" disabled>
+                        </div>
+                    </div>
+                    
+                    <div id="profileActions" class="flex justify-center space-x-4 mt-4">
+                        <button id="editProfileBtn" class="edit-button">
+                            <i class="fas fa-edit mr-2"></i> 수정
+                        </button>
+                        <button id="saveProfileBtn" class="save-button hidden">
+                            <i class="fas fa-save mr-2"></i> 저장
+                        </button>
+                        <button id="cancelEditBtn" class="cancel-button hidden">
+                            <i class="fas fa-times mr-2"></i> 취소
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Friend List Section -->
+                <div class="friends-card space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center">친구 목록</h2>
+                    
+                    <!-- Add Friend -->
+                    <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                        <input type="text" id="friendNameInput" placeholder="추가할 친구 이름" class="flex-grow p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg">
+                        <button id="addFriendBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg">
+                            <i class="fas fa-user-plus mr-2"></i> 친구 추가
+                        </button>
+                    </div>
+
+                    <!-- Friend List -->
+                    <div id="friendList" class="space-y-3">
+                        <p class="text-gray-500 text-center" id="noFriendsMessage">친구를 추가해보세요!</p>
+                        <!-- Friends will be dynamically loaded here -->
+                    </div>
+                </div>
+
+                <!-- Logout Button -->
+                <div class="text-center mt-10">
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl">
+                        <i class="fas fa-sign-out-alt mr-3"></i> 로그아웃
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-800 text-white py-8 rounded-t-lg mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // --- Dummy Data for Local Demo ---
+        let currentUser = null; // Currently logged-in user data
+        
+        // Simulates a database of all registered users for friend search
+        const allUsers = [
+            { uid: 'user_kim', name: '김철수', class: 'A반', studentId: '1기', profilePicUrl: 'https://placehold.co/120x120/cccccc/333333?text=김철수' },
+            { uid: 'user_lee', name: '이영희', class: 'B반', studentId: '2기', profilePicUrl: 'https://placehold.co/120x120/cccccc/333333?text=이영희' },
+            { uid: 'user_park', name: '박민수', class: 'A반', studentId: '1기', profilePicUrl: 'https://placehold.co/120x120/cccccc/333333?text=박민수' },
+            { uid: 'user_choi', name: '최지영', class: 'C반', studentId: '3기', profilePicUrl: 'https://placehold.co/120x120/cccccc/333333?text=최지영' },
+            { uid: 'user_jung', name: '정우진', class: 'B반', studentId: '2기', profilePicUrl: 'https://placehold.co/120x120/cccccc/333333?text=정우진' }
+        ];
+
+        // --- DOM Elements ---
+        const notLoggedInSection = document.getElementById('notLoggedIn');
+        const loggedInSection = document.getElementById('loggedIn');
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const displayUserIdSpan = document.getElementById('displayUserId');
+
+        const profilePic = document.getElementById('profilePic');
+        const profileNameInput = document.getElementById('profileName');
+        const profileClassInput = document.getElementById('profileClass');
+        const profileStudentIdInput = document.getElementById('profileStudentId');
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        const friendNameInput = document.getElementById('friendNameInput');
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const friendListDiv = document.getElementById('friendList');
+        const noFriendsMessage = document.getElementById('noFriendsMessage');
+
+        // Custom Message Box elements
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxText = document.getElementById('messageBoxText');
+
+        /**
+         * Function to display a custom message box
+         * @param {string} message - Message to display
+         * @param {function} onOkCallback - Callback function to execute on OK button click (optional)
+         */
+        function showMessage(message, onOkCallback = null) {
+            messageBoxText.textContent = message;
+            messageBoxOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden'; // Prevent body scroll
+
+            // Click anywhere on the overlay to close
+            messageBoxOverlay.onclick = () => {
+                hideMessage();
+                if (onOkCallback) {
+                    onOkCallback();
+                }
+            };
+        }
+
+        /**
+         * Function to hide the custom message box
+         */
+        function hideMessage() {
+            messageBoxOverlay.classList.remove('visible');
+            document.body.style.overflow = 'auto'; // Allow body scroll
+            messageBoxOverlay.onclick = null; // Remove event listener to prevent multiple calls
+        }
+
+        // --- Authentication Simulation Functions ---
+
+        async function handleSignIn() {
+            // Simulate a successful login with dummy user data
+            currentUser = {
+                uid: 'test_user_12345',
+                name: '테스트 사용자',
+                class: 'A반',
+                studentId: '1기',
+                profilePicUrl: 'https://placehold.co/120x120/4169E1/FFFFFF?text=ME',
+                friends: [
+                    { id: 'friend_1', friendName: '김철수', friendUid: 'user_kim' },
+                    { id: 'friend_2', friendName: '이영희', friendUid: 'user_lee' }
+                ]
+            };
+            updateUIBasedOnLoginState();
+            showMessage("테스트 로그인되었습니다!");
+        }
+
+        async function handleSignOut() {
+            currentUser = null; // Clear current user data
+            updateUIBasedOnLoginState();
+            showMessage("로그아웃되었습니다.");
+        }
+
+        // --- UI Update based on Login State ---
+        function updateUIBasedOnLoginState() {
+            if (currentUser) {
+                notLoggedInSection.classList.add('hidden');
+                loggedInSection.classList.remove('hidden');
+                displayUserIdSpan.textContent = currentUser.uid;
+                
+                loadUserProfile();
+                loadFriendList();
+            } else {
+                notLoggedInSection.classList.remove('hidden');
+                loggedInSection.classList.add('hidden');
+                displayUserIdSpan.textContent = ''; // Clear user ID
+                // Clear profile and friend list when logged out
+                profilePic.src = "https://placehold.co/120x120/cccccc/333333?text=Profile";
+                profileNameInput.value = "";
+                profileClassInput.value = "";
+                profileStudentIdInput.value = "";
+                friendListDiv.innerHTML = '';
+                noFriendsMessage.classList.remove('hidden');
+            }
+            toggleProfileEdit(false); // Ensure fields are disabled initially
+        }
+
+        // --- Profile Management Simulation ---
+        function loadUserProfile() {
+            if (!currentUser) return;
+            profilePic.src = currentUser.profilePicUrl;
+            profileNameInput.value = currentUser.name;
+            profileClassInput.value = currentUser.class;
+            profileStudentIdInput.value = currentUser.studentId;
+        }
+
+        async function updateProfile() {
+            if (!currentUser) {
+                showMessage("로그인이 필요합니다.");
+                return;
+            }
+
+            // Update local currentUser object
+            currentUser.name = profileNameInput.value.trim();
+            currentUser.class = profileClassInput.value.trim();
+            currentUser.studentId = profileStudentIdInput.value.trim();
+            // profilePicUrl is not directly editable in this demo, so it remains as is.
+
+            showMessage("프로필이 성공적으로 업데이트되었습니다!");
+            toggleProfileEdit(false); // Disable fields after saving
+            loadUserProfile(); // Re-render updated profile
+        }
+
+        // --- Friend List Management Simulation ---
+        function loadFriendList() {
+            if (!currentUser || !currentUser.friends) return;
+
+            friendListDiv.innerHTML = ''; // Clear existing list
+            if (currentUser.friends.length === 0) {
+                noFriendsMessage.classList.remove('hidden');
+            } else {
+                noFriendsMessage.classList.add('hidden');
+                currentUser.friends.forEach(friend => {
+                    const friendElement = document.createElement('div');
+                    friendElement.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200';
+                    friendElement.innerHTML = `
+                        <span class="text-lg font-medium">${friend.friendName}</span>
+                        <button data-friend-id="${friend.id}" class="delete-friend-btn text-red-500 hover:text-red-700 transition-colors duration-200">
+                            <i class="fas fa-user-times"></i> 삭제
+                        </button>
+                    `;
+                    friendListDiv.appendChild(friendElement);
+                });
+                // Attach event listeners to new delete buttons
+                document.querySelectorAll('.delete-friend-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const friendIdToDelete = event.currentTarget.dataset.friendId;
+                        deleteFriend(friendIdToDelete);
+                    });
+                });
+            }
+        }
+
+        async function addFriend() {
+            if (!currentUser) {
+                showMessage("로그인이 필요합니다.");
+                return;
+            }
+
+            const friendName = friendNameInput.value.trim();
+            if (!friendName) {
+                showMessage("친구 이름을 입력해주세요.");
+                return;
+            }
+
+            if (friendName === currentUser.name) {
+                showMessage("자신을 친구로 추가할 수 없습니다.");
+                return;
+            }
+
+            // Simulate searching for the friend in allUsers
+            const foundUser = allUsers.find(user => user.name === friendName);
+
+            if (!foundUser) {
+                showMessage(`'${friendName}'이라는 이름의 사용자를 찾을 수 없습니다.`);
+                return;
+            }
+
+            // Check if already friends
+            const isAlreadyFriend = currentUser.friends.some(friend => friend.friendUid === foundUser.uid);
+            if (isAlreadyFriend) {
+                showMessage(`'${friendName}'님은 이미 친구 목록에 있습니다.`);
+                return;
+            }
+
+            // Add friend to current user's local friend list
+            const newFriendId = `friend_${Date.now()}`; // Simple unique ID for demo
+            currentUser.friends.push({
+                id: newFriendId,
+                friendName: foundUser.name,
+                friendUid: foundUser.uid
+            });
+            showMessage(`'${friendName}'님을 친구로 추가했습니다!`);
+            friendNameInput.value = ''; // Clear input
+            loadFriendList(); // Re-render friend list
+        }
+
+        async function deleteFriend(friendIdToDelete) {
+            if (!currentUser) {
+                showMessage("로그인이 필요합니다.");
+                return;
+            }
+
+            // Filter out the friend to delete from the local array
+            currentUser.friends = currentUser.friends.filter(friend => friend.id !== friendIdToDelete);
+            showMessage("친구가 삭제되었습니다.");
+            loadFriendList(); // Re-render friend list
+        }
+
+        // --- UI State Management ---
+        function toggleProfileEdit(isEditing) {
+            profileNameInput.disabled = !isEditing;
+            profileClassInput.disabled = !isEditing;
+            profileStudentIdInput.disabled = !isEditing;
+
+            if (isEditing) {
+                editProfileBtn.classList.add('hidden');
+                saveProfileBtn.classList.remove('hidden');
+                cancelEditBtn.classList.remove('hidden');
+            } else {
+                editProfileBtn.classList.remove('hidden');
+                saveProfileBtn.classList.add('hidden');
+                cancelEditBtn.classList.add('hidden');
+            }
+        }
+
+        // --- Event Listeners ---
+        googleSignInBtn.addEventListener('click', handleSignIn);
+        logoutBtn.addEventListener('click', handleSignOut);
+        editProfileBtn.addEventListener('click', () => {
+            toggleProfileEdit(true);
+        });
+        saveProfileBtn.addEventListener('click', updateProfile);
+        cancelEditBtn.addEventListener('click', () => {
+            loadUserProfile(); // Revert changes by reloading current profile
+            toggleProfileEdit(false);
+        });
+        addFriendBtn.addEventListener('click', addFriend);
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUIBasedOnLoginState(); // Check initial login state (will be logged out by default)
+        });
+    </script>
+</body>
+</html>

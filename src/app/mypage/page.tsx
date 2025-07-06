@@ -217,12 +217,12 @@ export default function MyPage() {
             <header className="bg-white shadow-md py-4">
                 <div className="container mx-auto px-4 flex justify-between items-center">
                     {/* Link 컴포넌트 사용 */}
-                    <Link href="/main" className="text-2xl font-bold text-gray-800 rounded-lg">
+                    <Link href="/" className="text-2xl font-bold text-gray-800 rounded-lg">
                         SSABAB
                     </Link>
                     <nav>
                         <ul className="flex space-x-6">
-                            <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
+                            <li><Link href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
                             <li><Link href="/review" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</Link></li>
                             <li><Link href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</Link></li>
                             <li><Link href="/mypage" className="text-blue-600 font-bold rounded-lg">마이페이지</Link></li>

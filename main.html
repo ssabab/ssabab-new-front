@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #eaf2f8; /* Slightly more vibrant light blue-gray background */
+            background-color: #ffffff; /* Slightly more vibrant light blue-gray background */
         }
         /* 기존 모달 관련 그라데이션 CSS는 페이지 구성에 필요 없으므로 제거 */
         /* .section-gradient-blue, .section-gradient-sunset 등 */
@@ -28,12 +28,12 @@
         /* .menu-list, .menu-list li */
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
-    <div id="mainContent">
+    <div id="mainContent" class="flex-grow">
         <header class="bg-white shadow-md py-4">
             <div class="container mx-auto px-4 flex justify-between items-center">
-                <div class="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</div>
+                <a href="main.html" class="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</a>
                 <nav>
                     <ul class="flex space-x-6">
                         <li><a href="main.html" class="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
@@ -137,7 +137,7 @@
             </div>
         </section>
 
-        <footer class="bg-gray-800 text-white py-8 rounded-t-lg">
+        <footer class="bg-gray-800 text-white py-8">
             <div class="container mx-auto px-4 text-center">
                 <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
                 <div class="flex justify-center space-x-6 mt-4">

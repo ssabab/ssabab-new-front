@@ -22,7 +22,7 @@ export default function MyPage() {
 
     // 로컬 UI 상태 관리
     const [isEditingProfile, setIsEditingProfile] = useState(false);
-    const [profileName, setProfileName] = useState('');
+    const [profileName, setProfileName] = useState(''); // username을 표시할 필드
     const [profileClass, setProfileClass] = useState('');
     const [profileStudentId, setProfileStudentId] = useState('');
     const [friendNameInput, setFriendNameInput] = useState('');
@@ -52,7 +52,7 @@ export default function MyPage() {
     // 사용자 정보가 변경될 때 프로필 입력 필드 업데이트
     useEffect(() => {
         if (user) {
-            setProfileName(user.name || ''); // user.name이 없을 경우를 대비
+            setProfileName(user.username || ''); // user.username으로 변경
             setProfileClass(user.classNum || ''); // user.classNum이 없을 경우를 대비
             setProfileStudentId(user.ssafyYear || ''); // user.ssafyYear가 없을 경우를 대비
         } else {
@@ -122,11 +122,8 @@ export default function MyPage() {
         try {
             // AuthStore의 updateUserInformation 액션 호출
             await updateUserInformation({
-                username: profileName,      // MypageApi의 UserInfoData에 name 필드가 있으므로 사용
-                classNum: profileClass, // MypageApi의 UserInfoData에 classNum 필드가 있으므로 사용
-                // ssafyYear: profileStudentId, // MypageApi의 UserInfoData에 ssafyYear 필드가 있으므로 사용
-                // username은 변경하지 않는다고 가정하거나, 필요시 추가
-                // email, provider 등 다른 필드는 이 화면에서 수정하지 않으므로 제외
+                username: profileName,      // 'username' 필드로 변경
+                classNum: profileClass,
             });
             showMessage("프로필이 성공적으로 업데이트되었습니다!");
             setIsEditingProfile(false); // 저장 후 수정 모드 종료
@@ -279,7 +276,8 @@ export default function MyPage() {
                                     />
 
                                     <div className="space-y-3">
-                                        <div>
+                                        {/* 각 div에 mx-auto 추가하여 내부 input/label 묶음을 중앙 정렬 */}
+                                        <div className="mx-auto">
                                             <label htmlFor="profileName" className="block text-gray-800 text-sm font-medium">이름</label>
                                             <input
                                                 type="text"
@@ -290,7 +288,7 @@ export default function MyPage() {
                                                 onChange={(e) => setProfileName(e.target.value)}
                                             />
                                         </div>
-                                        <div>
+                                        <div className="mx-auto">
                                             <label htmlFor="profileClass" className="block text-gray-800 text-sm font-medium">반</label>
                                             <input
                                                 type="text"
@@ -301,7 +299,7 @@ export default function MyPage() {
                                                 onChange={(e) => setProfileClass(e.target.value)}
                                             />
                                         </div>
-                                        <div>
+                                        <div className="mx-auto">
                                             <label htmlFor="profileStudentId" className="block text-gray-800 text-sm font-medium">기수</label>
                                             <input
                                                 type="text"
@@ -330,7 +328,7 @@ export default function MyPage() {
                                                         setIsEditingProfile(false);
                                                         // 변경 사항 되돌리기 (user 상태에서 다시 로드)
                                                         if (user) {
-                                                            setProfileName(user.name || '');
+                                                            setProfileName(user.username || ''); // user.username으로 변경
                                                             setProfileClass(user.classNum || '');
                                                             setProfileStudentId(user.ssafyYear || '');
                                                         }
@@ -411,7 +409,7 @@ export default function MyPage() {
                     <div className="flex justify-center space-x-6 mt-4">
                         <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
                         <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
-                        <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
+                        <a href="#" className="text-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
                     </div>
                 </div>
             </footer>

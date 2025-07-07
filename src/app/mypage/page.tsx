@@ -27,7 +27,8 @@ import {
          updateUserInformation,
         initializeAuth,
         socialLoginTempData,
-     } = useAuthStore();
+        signup,
+    } = useAuthStore();
 
      const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileName, setProfileName] = useState('');
@@ -326,17 +327,10 @@ import {
 
         try {
             console.log("Sending Signup Payload:", fullSignupPayload);
-            const response = await signup(fullSignupPayload);
-
-            if (response.status === 200 || response.status === 201) {
-                showMessage("회원가입이 완료되었습니다! 마이페이지를 이용할 수 있습니다.");
-                setShowSignupForm(false);
-                fetchUserInfo();
-            } else {
-                 const errorText = response.statusText || '알 수 없는 오류';
-                 console.error("회원가입 처리되었으나 예상치 못한 응답:", response);
-                 showMessage(`회원가입 처리 중 문제가 발생했습니다: ${errorText}`);
-            }
+            await signup(fullSignupPayload);
+            
+            showMessage("회원가입이 완료되었습니다! 마이페이지를 이용할 수 있습니다.");
+            
         } catch (error: any) {
             console.error("회원가입 실패:", error);
             if (error.response && error.response.data && error.response.data.message) {

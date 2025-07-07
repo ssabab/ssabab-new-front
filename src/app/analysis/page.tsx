@@ -156,12 +156,12 @@ export default function AnalysisPage() {
 
   // API 데이터 상태 관리
   const [monthlyData, setMonthlyData] = useState<MonthlyAnalysisData | null>(null);
-  const [personalData, setPersonalData] = useState<PersonalAnalysisData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [personalData, setPersonalData] = useState<PersonalAnalysisData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 백엔드 API 기본 URL (환경 변수 또는 기본값)
-  const BACKEND_API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8080';
+  const BACKEND_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
   // 메시지 박스 표시 함수
   const showMessage = (message: string) => {
@@ -315,8 +315,8 @@ export default function AnalysisPage() {
 
     const { dm_user_summary, dm_user_food_rating_rank_best, dm_user_food_rating_rank_worst, dm_user_category_stats, dm_user_tag_stats, dm_user_review_word, dm_user_insight, dm_user_group_comparison } = data;
 
-    const maxCategoryCount = Math.max(...dm_user_category_stats.map(stat => stat.count), 0);
-    const maxTagCount = Math.max(...dm_user_tag_stats.map(stat => stat.count), 0);
+    const maxCategoryCount = Math.max(...dm_user_category_stats.map(stat => stat.count), 0);
+    const maxTagCount = Math.max(...dm_user_tag_stats.map(stat => stat.count), 0);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -14,10 +14,12 @@ export interface Menu {
 
 export type MenuResponse = Menu[];
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
 // API 함수
 export const getMenuByDate = async (date: string): Promise<MenuResponse> => {
   try {
-    const response = await fetch(`http://localhost:8080/api/menu?date=${date}`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu?date=${date}`, {
       method: 'GET',
       headers: {
         'accept': '*/*',

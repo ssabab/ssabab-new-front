@@ -2,7 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getMenuByDate, getTodayDateString, Food, Menu, MenuResponse } from '../api/MainApi';
+
+// 쿠키 관련 유틸리티 함수
+const setCookie = (name: string, value: string, days: number = 7) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
+};
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
 
 
 
@@ -36,6 +55,7 @@ const MenuCard: React.FC<{
 );
 
 export default function Home() {
+  const router = useRouter();
   const [selectedMenuId, setSelectedMenuId] = useState<number | null>(null);
   const [menuData, setMenuData] = useState<MenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +64,24 @@ export default function Home() {
   const handleMenuClick = (menuId: number) => {
     setSelectedMenuId(selectedMenuId === menuId ? null : menuId);
   };
+
+  // 토큰 처리 로직
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+
+    if (accessToken && refreshToken) {
+      // 쿠키에 토큰 저장 (7일 만료)
+      setCookie('accessToken', accessToken, 7);
+      setCookie('refreshToken', refreshToken, 7);
+      
+      console.log('토큰이 쿠키에 저장되었습니다.');
+      
+      // URL에서 토큰 파라미터 제거하고 리다이렉트
+      router.replace('/');
+    }
+  }, [router]);
 
   // API를 통해 메뉴 데이터 가져오기
   useEffect(() => {

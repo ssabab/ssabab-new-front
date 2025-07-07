@@ -18,16 +18,27 @@ export function getCookieValue(key: string): string | undefined {
  * @param value 설정할 쿠키의 값
  * @param days 쿠키 유효 기간 (일, 기본값 7일)
  */
-function setCookie(name: string, value: string, days = 7) {
+export function setCookie(name: string, value: string, days = 7) {
   if (typeof document === 'undefined') return;
   const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+  // `SameSite=None; Secure;`는 크로스사이트 요청에 필수
   document.cookie = `${name}=${value}; Path=/; SameSite=None; Secure; Expires=${expires}`;
 }
 
 /**
- * Axios 인스턴스 생성 - 기본 설정 포함
+ * 쿠키를 제거하는 함수
+ * @param name 제거할 쿠키의 이름
  */
-const api = axios.create({
+export function removeCookie(name: string) {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure;`;
+}
+
+/**
+ * Axios 인스턴스 생성 - 기본 설정 포함
+ * MypageApi라는 이름으로 export default 하기 위해 이름을 변경
+ */
+const MypageApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
@@ -36,7 +47,7 @@ const api = axios.create({
 /**
  * 요청 전 인터셉터 - accessToken, refreshToken을 헤더에 포함
  */
-api.interceptors.request.use(config => {
+MypageApi.interceptors.request.use(config => {
   const token = getCookieValue('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -68,17 +79,18 @@ export interface UserInfoData {
 
 /** 회원가입 요청 페이로드 인터페이스 */
 export interface SignupPayload {
+  // 백엔드 DTO에 맞춰 재조정된 필드들
   email: string;
   provider: string;
   providerId: string;
   profileImage: string;
   name: string;
   username: string;
-  ssafyYear: string;
-  classNum: string;
+  ssafyYear: string; // `SignupRequestDTO`의 `ssafyYear`에 매핑
+  classNum: string;  // `SignupRequestDTO`의 `classNum`에 매핑
   ssafyRegion: string;
   gender: 'M' | 'F';
-  birthDate: string; // YYYY-MM-DD
+  birthDate: string; //YYYY-MM-DD
 }
 
 /** 회원 정보 수정 요청 페이로드 인터페이스 */
@@ -96,6 +108,7 @@ export interface UpdateUserInfoPayload {
  */
 export const redirectToGoogleLogin = (): void => {
   if (typeof window !== 'undefined') {
+    // 백엔드 로그인 엔드포인트로 리다이렉트 (콜백 URL은 백엔드가 처리)
     window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/login`;
   }
 };
@@ -106,9 +119,8 @@ export const redirectToGoogleLogin = (): void => {
  * @returns Promise<AxiosResponse<any>>
  */
 export const signup = (payload: SignupPayload): Promise<AxiosResponse<any>> => {
-  return axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/account/signup`, payload, {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  // 회원가입 API는 /account/signup으로 Post 요청
+  return MypageApi.post('/account/signup', payload);
 };
 
 /**
@@ -116,7 +128,7 @@ export const signup = (payload: SignupPayload): Promise<AxiosResponse<any>> => {
  * @returns Promise<AxiosResponse<void>>
  */
 export const logout = (): Promise<AxiosResponse<void>> =>
-  api.post('/account/logout', null, { withCredentials: true });
+  MypageApi.post('/account/logout', null); // withCredentials는 Axios 인스턴스에 이미 설정됨
 
 /**
  * 액세스 토큰을 재발급하는 함수
@@ -127,13 +139,14 @@ export const refreshAccessToken = async (): Promise<{ accessToken: string; refre
   const refreshToken = getCookieValue('refreshToken');
   if (!refreshToken) throw new Error('No refresh token');
 
-  const { data } = await api.post('/account/refresh', { refreshToken });
+  // 리프레시 토큰은 요청 헤더에 자동으로 추가되므로, 바디에는 포함하지 않음 (백엔드 설계에 따라 다름)
+  const { data } = await MypageApi.post('/account/refresh', {});
 
   // 새 토큰을 쿠키에 저장
-  setCookie('accessToken', data.token.accessToken);
-  setCookie('refreshToken', data.token.refreshToken);
+  setCookie('accessToken', data.accessToken); // 백엔드 응답에 따라 key 조정 필요 (data.token.accessToken 또는 data.accessToken)
+  setCookie('refreshToken', data.refreshToken); // 백엔드 응답에 따라 key 조정 필요
 
-  return data.token;
+  return data; // 새로운 accessToken과 refreshToken을 포함한 객체 반환
 };
 
 /**
@@ -141,7 +154,7 @@ export const refreshAccessToken = async (): Promise<{ accessToken: string; refre
  * @returns Promise<AxiosResponse<UserInfoData>>
  */
 export const getAccountInfo = (): Promise<AxiosResponse<UserInfoData>> =>
-  api.get('/account/info');
+  MypageApi.get('/account/info');
 
 /**
  * 회원 정보를 수정하는 함수
@@ -149,7 +162,7 @@ export const getAccountInfo = (): Promise<AxiosResponse<UserInfoData>> =>
  * @returns Promise<AxiosResponse<any>>
  */
 export const updateAccountInfo = (payload: UpdateUserInfoPayload): Promise<AxiosResponse<any>> =>
-  api.put('/account/update', payload);
+  MypageApi.put('/account/update', payload);
 
 // 6. 소셜 (친구) API
 /**
@@ -157,7 +170,7 @@ export const updateAccountInfo = (payload: UpdateUserInfoPayload): Promise<Axios
  * @returns Promise<AxiosResponse<{ friends: UserInfoData[] }>>
  */
 export const getFriends = (): Promise<AxiosResponse<{ friends: UserInfoData[] }>> =>
-  api.get('/friends');
+  MypageApi.get('/friends');
 
 /**
  * 친구를 추가하는 함수
@@ -165,7 +178,7 @@ export const getFriends = (): Promise<AxiosResponse<{ friends: UserInfoData[] }>
  * @returns Promise<AxiosResponse<any>>
  */
 export const addFriend = (username: string): Promise<AxiosResponse<any>> =>
-  api.post('/friends', { username });
+  MypageApi.post('/friends', { username });
 
 /**
  * 친구를 삭제하는 함수
@@ -173,7 +186,7 @@ export const addFriend = (username: string): Promise<AxiosResponse<any>> =>
  * @returns Promise<AxiosResponse<void>>
  */
 export const deleteFriend = (friendId: number): Promise<AxiosResponse<void>> =>
-  api.delete(`/friends/${friendId}`);
+  MypageApi.delete(`/friends/${friendId}`);
 
-// axios 인스턴스 기본 export (MypageApi만 사용할 경우 이 인스턴스를 통해 요청)
-export default api;
+// Axios 인스턴스를 MypageApi라는 이름으로 기본 export
+export default MypageApi;

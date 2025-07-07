@@ -1,12 +1,12 @@
 // src/app/signup/page.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/AuthStore';
 import { setCookie } from '@/api/MypageApi'; // setCookie만 명시적으로 사용
 
-export default function SignupPage() {
+function SignupHandler() {
     const router = useRouter();
     const searchParams = useSearchParams();
     // initializeAuth를 AuthStore에서 가져와 사용합니다.
@@ -65,12 +65,23 @@ export default function SignupPage() {
         };
     }, [router, searchParams, initializeAuth]); // 의존성 배열에 router, searchParams, initializeAuth 포함
 
+    // 로직만 처리하므로 아무것도 렌더링하지 않습니다.
+    return null;
+}
+
+export default function SignupPage() {
     // 사용자가 이 페이지에 잠시 머무르는 동안 보여줄 UI
     return (
-        <div className="flex flex-col min-h-screen items-center justify-center bg-gray-100">
-            <p className="text-xl font-semibold text-gray-700">회원가입 정보 처리 중...</p>
-            <div className="mt-4 animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            <p className="mt-4 text-gray-500">잠시 후 마이페이지로 이동합니다.</p>
-        </div>
+        <Suspense
+            fallback={
+                <div className="flex flex-col min-h-screen items-center justify-center bg-gray-100">
+                    <p className="text-xl font-semibold text-gray-700">회원가입 정보 처리 중...</p>
+                    <div className="mt-4 animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                    <p className="mt-4 text-gray-500">잠시 후 마이페이지로 이동합니다.</p>
+                </div>
+            }
+        >
+            <SignupHandler />
+        </Suspense>
     );
 }

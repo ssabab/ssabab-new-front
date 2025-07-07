@@ -38,6 +38,7 @@ export default function DetailedReviewPage() {
   const [messageBoxText, setMessageBoxText] = useState('');
   
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 컴포넌트가 언마운트될 때 body 스크롤을 항상 복원하도록 보장합니다.
   useEffect(() => {
@@ -110,6 +111,8 @@ export default function DetailedReviewPage() {
       }
     }
 
+    setIsSubmitting(true);
+
     try {
       const foodReviewsPayload: SubmitFoodReviewsPayload = {
         menuId,
@@ -137,6 +140,8 @@ export default function DetailedReviewPage() {
     } catch (error) {
       console.error("평가 제출 실패:", error);
       showMessage("평가 제출에 실패했습니다. 서버 로그를 확인하거나 관리자에게 문의하세요.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -169,6 +174,15 @@ export default function DetailedReviewPage() {
         .analysis-card:hover { transform: translateY(-5px); }
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+      {isSubmitting && (
+        <div className="message-box-overlay visible">
+          <div className="message-box-content">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p>제출 중입니다...</p>
+          </div>
+        </div>
+      )}
 
       {messageBoxVisible && (
         <div className="message-box-overlay visible" onClick={handleConfirm}>

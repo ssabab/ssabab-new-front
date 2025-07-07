@@ -1,8 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { getMenuByDate, getTodayDateString, Food, Menu, MenuResponse } from '../api/MainApi';
+
+// 쿠키 관련 유틸리티 함수
+const setCookie = (name: string, value: string, days: number = 7) => {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; secure; samesite=strict`;
+};
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
 
 
 
@@ -36,6 +54,7 @@ const MenuCard: React.FC<{
 );
 
 export default function Home() {
+  const router = useRouter();
   const [selectedMenuId, setSelectedMenuId] = useState<number | null>(null);
   const [menuData, setMenuData] = useState<MenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +63,24 @@ export default function Home() {
   const handleMenuClick = (menuId: number) => {
     setSelectedMenuId(selectedMenuId === menuId ? null : menuId);
   };
+
+  // 토큰 처리 로직
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+
+    if (accessToken && refreshToken) {
+      // 쿠키에 토큰 저장 (7일 만료)
+      setCookie('accessToken', accessToken, 7);
+      setCookie('refreshToken', refreshToken, 7);
+      
+      console.log('토큰이 쿠키에 저장되었습니다.');
+      
+      // URL에서 토큰 파라미터 제거하고 리다이렉트
+      router.replace('/');
+    }
+  }, [router]);
 
   // API를 통해 메뉴 데이터 가져오기
   useEffect(() => {
@@ -66,14 +103,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       <style jsx global>{`
-        body { 
-          font-family: 'Inter', sans-serif; 
-          background-color: #ffffff; 
-          overflow-x: hidden; 
-          overflow-y: auto; 
-        }
         .section-gradient-pastel { 
           background: linear-gradient(to bottom, #60a5fa, #93c5fd, #bfdbfe); 
         }
@@ -97,79 +128,45 @@ export default function Home() {
           font-weight: 500; 
         }
       `}</style>
-             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
 
-
-
-       {/* 헤더 */}
-       <header className="bg-white shadow-md py-4">
-         <div className="container mx-auto px-4 flex justify-between items-center">
-           <Link href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</Link>
-           <nav>
-             <ul className="flex space-x-6">
-               <li><Link href="/" className="text-blue-600 font-bold rounded-lg">홈</Link></li>
-               <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</Link></li>
-               <li><Link href="/review" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</Link></li>
-               <li><Link href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</Link></li>
-               <li><Link href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</Link></li>
-             </ul>
-           </nav>
-         </div>
-       </header>
-
-             {/* 메인 컨텐츠 */}
-       <main className="flex-grow">
-         <div className="py-16 md:py-24 px-4 section-gradient-pastel text-white text-center">
-           <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
-             <h1 className="text-4xl md:text-6xl font-extrabold mb-12 text-shadow">오늘의 싸밥!!</h1>
-             
-             {loading ? (
-               <div className="flex justify-center items-center py-16">
-                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
-                 <span className="ml-4 text-xl font-semibold">메뉴를 불러오는 중...</span>
-               </div>
-             ) : error ? (
-               <div className="flex flex-col items-center py-16">
-                 <div className="text-red-100 text-xl font-semibold mb-4">⚠️ {error}</div>
-                 <button 
-                   onClick={() => window.location.reload()} 
-                   className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200"
-                 >
-                   다시 시도
-                 </button>
-               </div>
-             ) : menuData && menuData.length > 0 ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center items-start max-w-4xl mx-auto w-full">
-                 {menuData.slice(0, 2).map((menu, index) => (
-                   <MenuCard 
-                     key={menu.menuId}
-                     menu={menu} 
-                     title={`오늘의 메뉴 ${index + 1}`} 
-                     isSelected={selectedMenuId === menu.menuId}
-                     onClick={() => handleMenuClick(menu.menuId)}
-                   />
-                 ))}
-               </div>
-             ) : (
-               <div className="flex justify-center items-center py-16">
-                 <span className="text-xl font-semibold">메뉴 데이터가 없습니다.</span>
-               </div>
-             )}
-           </div>
-         </div>
-       </main>
-
-       {/* 푸터 섹션 */}
-       <footer className="bg-gray-800 text-white py-8">
-         <div className="container mx-auto px-4 text-center">
-           <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
-           <div className="flex justify-center space-x-6 mt-4">
-             <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
-             <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
-             <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
-           </div>
-         </div>
-       </footer>
-    </div>
+      <div className="py-16 md:py-24 px-4 section-gradient-pastel text-white text-center">
+        <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-12 text-shadow">오늘의 싸밥!!</h1>
+          
+          {loading ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+              <span className="ml-4 text-xl font-semibold">메뉴를 불러오는 중...</span>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center py-16">
+              <div className="text-red-100 text-xl font-semibold mb-4">⚠️ {error}</div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : menuData && menuData.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center items-start max-w-4xl mx-auto w-full">
+              {menuData.slice(0, 2).map((menu, index) => (
+                <MenuCard 
+                  key={menu.menuId}
+                  menu={menu} 
+                  title={`오늘의 메뉴 ${index + 1}`} 
+                  isSelected={selectedMenuId === menu.menuId}
+                  onClick={() => handleMenuClick(menu.menuId)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center items-center py-16">
+              <span className="text-xl font-semibold">메뉴 데이터가 없습니다.</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

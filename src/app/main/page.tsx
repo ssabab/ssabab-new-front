@@ -46,7 +46,7 @@ export default function MainPage() {
             <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
               <h2 className="text-3xl md:text-5xl font-bold text-shadow mb-4">팀 해리네</h2>
               <p className="text-white text-lg mb-6">
-                SSABAB은 열정적인 개발자들로 구성된 '팀 해리네'가 만들었습니다.
+                SSABAB은 열정적인 개발자들로 구성된 &apos;팀 해리네&apos;가 만들었습니다.
                 사용자들에게 최고의 경험을 제공하기 위해 끊임없이 고민하고 노력하며,
                 기술과 아이디어를 통해 더 나은 세상을 만들고자 합니다.
               </p>

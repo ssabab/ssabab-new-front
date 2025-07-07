@@ -63,12 +63,15 @@ export interface SubmitMenuReviewPayload {
   menuComment: string;
   menuScore: number;
 }
+export interface ApiResponse {
+  message: string;
+}
 
 /**
  * 개별 음식 별점을 제출하는 API
  * @param payload 음식 리뷰 페이로드
  */
-export const submitFoodReviews = async (payload: SubmitFoodReviewsPayload): Promise<any> => {
+export const submitFoodReviews = async (payload: SubmitFoodReviewsPayload): Promise<ApiResponse> => {
   const response = await api.post('/api/review/food', payload);
   return response.data;
 };
@@ -77,7 +80,7 @@ export const submitFoodReviews = async (payload: SubmitFoodReviewsPayload): Prom
  * 메뉴 전체 리뷰(후회 여부, 코멘트 등)를 제출하는 API
  * @param payload 메뉴 리뷰 페이로드
  */
-export const submitMenuReview = async (payload: SubmitMenuReviewPayload): Promise<any> => {
+export const submitMenuReview = async (payload: SubmitMenuReviewPayload): Promise<ApiResponse> => {
   const response = await api.post('/api/review/menu', payload);
   return response.data;
 };
@@ -93,7 +96,7 @@ export interface SubmitPreVotePayload {
  * 사전 투표 데이터를 제출하는 API
  * @param payload 사전 투표 페이로드
  */
-export const submitPreVote = async (payload: SubmitPreVotePayload): Promise<any> => {
+export const submitPreVote = async (payload: SubmitPreVotePayload): Promise<ApiResponse > => {
   const response = await api.post('/api/vote', payload);
   return response.data;
 };

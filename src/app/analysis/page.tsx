@@ -16,7 +16,137 @@ function getCookieValue(key: string): string | undefined {
   const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
   return match ? decodeURIComponent(match[2]) : undefined;
 }
+// =================================================================
+// 월간 분석 (Monthly Analysis) 관련 타입
+// =================================================================
 
+/** (공용) Top/Worst 음식 DTO */
+export interface TopFood {
+  name: string;
+  reviews: number;
+  rating: number;
+}
+
+/** 월간 방문자 DTO */
+export interface MonthlyVisitors {
+  current: number;
+  previous: number;
+  totalCumulative: number;
+  previousMonthCumulative: number;
+}
+
+/** 누적 평가 DTO */
+export interface CumulativeEvaluations {
+  currentMonth: number;
+  totalCumulative: number;
+  previousMonthCumulative: number;
+}
+
+/** 평점 분포 DTO */
+export interface RatingDistribution {
+  min: number;
+  max: number;
+  avg: number;
+  iqrStart: number;
+  iqrEnd: number;
+  variance: number;
+  stdDev: number;
+}
+
+/** 자주 방문한 사용자 DTO */
+export interface FrequentVisitor {
+  name: string;
+  visits: number;
+  lastVisit: string;
+}
+
+/** 월간 전체 평점 DTO */
+export interface MonthlyOverallRating {
+  average: number;
+  totalEvaluations: number;
+}
+
+/** 월간 분석 전체 응답 데이터 타입 */
+export interface MonthlyAnalysisData {
+  topFoods: TopFood[];
+  worstFoods: TopFood[];
+  monthlyVisitors: MonthlyVisitors;
+  cumulativeEvaluations: CumulativeEvaluations;
+  ratingDistribution: RatingDistribution;
+  frequentVisitors: FrequentVisitor[];
+  monthlyOverallRating: MonthlyOverallRating;
+}
+
+
+// =================================================================
+// 개인 분석 (Personal Analysis) 관련 타입
+// =================================================================
+
+/** 개인 평점 요약 DTO (dm_user_summary) */
+export interface RatingData {
+  userId: number;
+  avgScore: number;
+  totalReviews: number;
+  preVoteCount: number;
+}
+
+/** 개인 음식 평점 순위 DTO (dm_user_food_rating_rank) */
+export interface FoodRatingRank {
+  userId: number;
+  foodName: string;
+  foodScore: number;
+  rankOrder: number;
+  scoreType: 'best' | 'worst';
+}
+
+/** 개인 카테고리 통계 DTO (dm_user_category_stats) */
+export interface CategoryStats {
+  userId: number;
+  category: string;
+  count: number;
+}
+
+/** 개인 태그 통계 DTO (dm_user_tag_stats) */
+export interface TagStats {
+  userId: number;
+  tag: string;
+  count: number;
+}
+
+/** 개인 리뷰 키워드 DTO (dm_user_review_word) */
+export interface ReviewWord {
+  userId: number;
+  word: string;
+  count: number;
+}
+
+/** 개인 식습관 인사이트 DTO (dm_user_insight) */
+export interface UserInsight {
+  userId: number;
+  insight: string | null; // 백엔드에서 null일 수 있음
+}
+
+/** 개인-그룹 비교 DTO (dm_user_group_comparison) */
+export interface UserGroupComparison {
+  userId: number;
+  groupType: string;
+  userAvgScore: number | null;
+  userDiversityScore: number | null;
+  groupAvgScore: number | null;
+  groupDiversityScore: number | null;
+}
+
+/** 개인 분석 전체 응답 데이터 타입 */
+export interface PersonalAnalysisData {
+  dm_user_summary: RatingData;
+  dm_user_food_rating_rank_best: FoodRatingRank[];
+  dm_user_food_rating_rank_worst: FoodRatingRank[];
+  dm_user_category_stats: CategoryStats[];
+  dm_user_tag_stats: TagStats[];
+  dm_user_review_word: ReviewWord[];
+  dm_user_insight: UserInsight;
+  dm_user_group_comparison: UserGroupComparison;
+}
 export default function AnalysisPage() {
   // 활성 탭 상태 관리: 'monthly' 또는 'personal'
   const [activeTab, setActiveTab] = useState('monthly');
@@ -25,10 +155,10 @@ export default function AnalysisPage() {
   const [messageBoxText, setMessageBoxText] = useState('');
 
   // API 데이터 상태 관리
-  const [monthlyData, setMonthlyData] = useState(null);
-  const [personalData, setPersonalData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [monthlyData, setMonthlyData] = useState<MonthlyAnalysisData | null>(null);
+  const [personalData, setPersonalData] = useState<PersonalAnalysisData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 백엔드 API 기본 URL (환경 변수 또는 기본값)
   const BACKEND_API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8080';
@@ -56,10 +186,11 @@ export default function AnalysisPage() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
+      const data: MonthlyAnalysisData = await response.json();
       setMonthlyData(data);
-    } catch (err: any) {
-      setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + message);
       showMessage('월간 분석 데이터를 가져오는 데 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -86,22 +217,23 @@ export default function AnalysisPage() {
       if (response.status === 401) {
         throw new Error('인증되지 않았습니다. 다시 로그인해주세요.');
       }
+      const errorData = await response.json().catch(() => null); // JSON 파싱 실패를 대비
       if (!response.ok) {
         // 응답 본문을 확인하여 "DataNotFound" 에러인지 확인합니다.
-        const errorData = await response.json().catch(() => null); // JSON 파싱 실패를 대비
         if (response.status === 404 && errorData?.error === 'DataNotFound') {
             throw new Error('DataNotFound'); // 특별한 에러 타입으로 던집니다.
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
+      const data: PersonalAnalysisData = errorData;
       setPersonalData(data);
-    } catch (err: any) {
-      if (err.message === 'DataNotFound') {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'DataNotFound') {
         setError('아직 데이터가 수집되지 않았습니다.');
       } else {
-        setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
-        showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+        setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + message);
+        showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + message);
       }
     } finally {
       setIsLoading(false);
@@ -119,7 +251,7 @@ export default function AnalysisPage() {
 
 
   // 월간 분석 콘텐츠 렌더링 함수
-  const renderMonthlyAnalysis = (data: any) => { // data 타입을 any로 변경하여 유연하게 사용
+  const renderMonthlyAnalysis = (data: MonthlyAnalysisData | null) => { // data 타입을 any로 변경하여 유연하게 사용
     if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
 
     return (
@@ -138,7 +270,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 TOP 5 음식</h2>
           <div className="space-y-3 text-gray-800">
-            {data.topFoods.map((food: any, index: number) => (
+            {data.topFoods.map((food, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.name}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -153,7 +285,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 WORST 5 음식</h2>
           <div className="space-y-3 text-gray-800">
-            {data.worstFoods.map((food: any, index: number) => (
+            {data.worstFoods.map((food, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.name}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -168,7 +300,7 @@ export default function AnalysisPage() {
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 방문한 사용자</h2>
           <ul className="list-disc list-inside space-y-2 text-lg text-gray-800">
-            {data.frequentVisitors.map((visitor: any, index: number) => (
+            {data.frequentVisitors.map((visitor, index: number) => (
               <li key={index}><strong>{visitor.name}</strong>: {visitor.visits}회 방문 (마지막 방문: {visitor.lastVisit})</li>
             ))}
           </ul>
@@ -178,37 +310,29 @@ export default function AnalysisPage() {
   };
 
   // 개인 분석 콘텐츠 렌더링 함수
-  const renderPersonalAnalysis = (data: any) => { // data 타입을 any로 변경하여 유연하게 사용
+  const renderPersonalAnalysis = (data: PersonalAnalysisData | null) => { // data 타입을 any로 변경하여 유연하게 사용
     if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
 
-    const userSummary = data.dm_user_summary;
-    const bestFoods = data.dm_user_food_rating_rank_best;
-    const worstFoods = data.dm_user_food_rating_rank_worst;
-    const categoryStats = data.dm_user_category_stats;
-    const tagStats = data.dm_user_tag_stats;
-    const reviewWords = data.dm_user_review_word;
-    const insight = data.dm_user_insight;
-    const groupComparison = data.dm_user_group_comparison;
+    const { dm_user_summary, dm_user_food_rating_rank_best, dm_user_food_rating_rank_worst, dm_user_category_stats, dm_user_tag_stats, dm_user_review_word, dm_user_insight, dm_user_group_comparison } = data;
 
-    // Calculate max count for category and tag stats for scaling bars
-    const maxCategoryCount = Math.max(...categoryStats.map((stat: any) => stat.count));
-    const maxTagCount = Math.max(...tagStats.map((stat: any) => stat.count));
+    const maxCategoryCount = Math.max(...dm_user_category_stats.map(stat => stat.count), 0);
+    const maxTagCount = Math.max(...dm_user_tag_stats.map(stat => stat.count), 0);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">내 리뷰 요약</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
-            <p><strong>평균 점수:</strong> {userSummary.avgScore.toFixed(2)} / 5</p>
-            <p><strong>총 리뷰 수:</strong> {userSummary.totalReviews}건</p>
-            <p><strong>사전 투표 수:</strong> {userSummary.preVoteCount}회</p>
+            <p><strong>평균 점수:</strong> {dm_user_summary.avgScore?.toFixed(2)} / 5</p>
+            <p><strong>총 리뷰 수:</strong> {dm_user_summary.totalReviews}건</p>
+            <p><strong>사전 투표 수:</strong> {dm_user_summary.preVoteCount}회</p>
           </div>
         </div>
 
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 좋아하는 음식 TOP 5</h2>
           <div className="space-y-3 text-gray-800">
-            {bestFoods.map((food: any, index: number) => (
+            {dm_user_food_rating_rank_best.map((food, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.foodName}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -223,7 +347,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 싫어하는 음식 WORST 5</h2>
           <div className="space-y-3 text-gray-800">
-            {worstFoods.map((food: any, index: number) => (
+            {dm_user_food_rating_rank_worst.map((food, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.foodName}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -238,7 +362,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">카테고리별 리뷰 통계</h2>
           <div className="space-y-3 text-gray-800">
-            {categoryStats.map((stat: any, index: number) => (
+            {dm_user_category_stats.map((stat, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{stat.category}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -253,7 +377,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">태그별 리뷰 통계</h2>
           <div className="space-y-3 text-gray-800">
-            {tagStats.map((stat: any, index: number) => (
+            {dm_user_tag_stats.map((stat, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{stat.tag}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -268,7 +392,7 @@ export default function AnalysisPage() {
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 사용한 리뷰 단어</h2>
           <ul className="list-disc list-inside space-y-2 text-lg flex flex-wrap gap-x-4 text-gray-800">
-            {reviewWords.map((word: any, index: number) => (
+            {dm_user_review_word.map((word, index: number) => (
               <li key={index}><strong>{word.word}</strong>: {word.count}회</li>
             ))}
           </ul>
@@ -276,16 +400,16 @@ export default function AnalysisPage() {
 
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">나의 식습관 인사이트</h2>
-          <p className="text-lg text-gray-800">{insight.insight}</p>
+          <p className="text-lg text-gray-800">{dm_user_insight.insight}</p>
         </div>
 
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">전체 사용자 그룹 비교</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
-            <p><strong>내 평균 점수:</strong> {groupComparison.userAvgScore.toFixed(2)}</p>
-            <p><strong>전체 그룹 평균 점수:</strong> {groupComparison.groupAvgScore.toFixed(2)}</p>
-            <p><strong>내 다양성 점수:</strong> {groupComparison.userDiversityScore.toFixed(1)}</p>
-            <p><strong>전체 그룹 다양성 점수:</strong> {groupComparison.groupDiversityScore.toFixed(1)}</p>
+            <p><strong>내 평균 점수:</strong> {dm_user_group_comparison.userAvgScore?.toFixed(2)}</p>
+            <p><strong>전체 그룹 평균 점수:</strong> {dm_user_group_comparison.groupAvgScore?.toFixed(2)}</p>
+            <p><strong>내 다양성 점수:</strong> {dm_user_group_comparison.userDiversityScore?.toFixed(1)}</p>
+            <p><strong>전체 그룹 다양성 점수:</strong> {dm_user_group_comparison.groupDiversityScore?.toFixed(1)}</p>
           </div>
         </div>
       </div>

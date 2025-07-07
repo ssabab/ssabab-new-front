@@ -99,7 +99,12 @@ export interface UpdateUserInfoPayload {
   classNum?: string;
   // 필요한 경우 다른 필드 추가
 }
-
+export interface TokenData {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+}
 // --- API 함수 정의 ---
 
 // 1. 인증 및 계정 관련 API
@@ -116,11 +121,11 @@ export const redirectToGoogleLogin = (): void => {
 /**
  * 회원가입을 처리하는 함수
  * @param payload 회원가입 페이로드
- * @returns Promise<AxiosResponse<any>>
+ * @returns Promise<AxiosResponse<TokenData>>
  */
-export const signup = (payload: SignupPayload): Promise<AxiosResponse<any>> => {
+export const signup = (payload: SignupPayload): Promise<AxiosResponse<TokenData>> => {
   // 회원가입 API는 /account/signup으로 Post 요청
-  return MypageApi.post('/account/signup', payload);
+  return MypageApi.post<TokenData>('/account/signup', payload);
 };
 
 /**
@@ -161,7 +166,7 @@ export const getAccountInfo = (): Promise<AxiosResponse<UserInfoData>> =>
  * @param payload 수정할 사용자 정보 페이로드
  * @returns Promise<AxiosResponse<any>>
  */
-export const updateAccountInfo = (payload: UpdateUserInfoPayload): Promise<AxiosResponse<any>> =>
+export const updateAccountInfo = (payload: UpdateUserInfoPayload): Promise<AxiosResponse<UserInfoData>> =>
   MypageApi.put('/account/update', payload);
 
 /**
@@ -186,7 +191,7 @@ export const getFriends = (): Promise<AxiosResponse<{ friends: UserInfoData[] }>
  * @param username 추가할 친구의 사용자 이름
  * @returns Promise<AxiosResponse<any>>
  */
-export const addFriend = (username: string): Promise<AxiosResponse<any>> =>
+export const addFriend = (username: string): Promise<AxiosResponse<void>> =>
   MypageApi.post('/friends', { username });
 
 /**

@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useMenuStore, Menu as MenuType, Food } from '@/store/MenuStore';
+import { useMenuStore, Menu as MenuType } from '@/store/MenuStore';
 import { submitFoodReviews, submitMenuReview, SubmitFoodReviewsPayload, SubmitMenuReviewPayload } from '@/api/ReviewApi';
 
 // --- 별점 평가 컴포넌트 ---

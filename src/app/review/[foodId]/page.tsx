@@ -176,7 +176,7 @@ export default function DetailedReviewPage() {
              <p className="text-2xl font-bold text-green-600 mb-2">🚀</p>
              <p>평가가 성공적으로 제출되었습니다!<br/>소중한 의견 감사합니다.</p>
              <div className="flex justify-center space-x-4 mt-6">
-               <button onClick={() => router.push('/main')} className="success-dialog-button secondary">
+               <button onClick={() => router.push('/')} className="success-dialog-button secondary">
                  홈으로
                </button>
                <button onClick={() => router.push('/analysis')} className="success-dialog-button">
@@ -189,10 +189,11 @@ export default function DetailedReviewPage() {
 
       <header className="bg-white shadow-md py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <Link href="/main" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</Link>
+          <Link href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</Link>
           <nav>
             <ul className="flex space-x-6">
-              <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
+              <li><Link href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
+              <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</Link></li>
               <li><Link href="/review" className="text-blue-600 font-bold rounded-lg">평가하기</Link></li>
               <li><Link href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</Link></li>
               <li><Link href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</Link></li>

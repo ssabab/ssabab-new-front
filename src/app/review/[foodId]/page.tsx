@@ -1,9 +1,11 @@
+
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+
 import { useParams, useRouter } from 'next/navigation';
-import { useMenuStore, Menu as MenuType, Food } from '@/store/MenuStore';
+import { useMenuStore, Menu as MenuType } from '@/store/MenuStore';
 import { submitFoodReviews, submitMenuReview, SubmitFoodReviewsPayload, SubmitMenuReviewPayload } from '@/api/ReviewApi';
 
 // --- 별점 평가 컴포넌트 ---
@@ -173,7 +175,7 @@ export default function DetailedReviewPage() {
         .analysis-card { background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); padding: 1.5rem; transition: transform 0.3s ease-in-out; }
         .analysis-card:hover { transform: translateY(-5px); }
       `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
 
       {isSubmitting && (
         <div className="message-box-overlay visible">

@@ -13,6 +13,7 @@ import api, {
     getCookieValue,
     setCookie,
     removeCookie,
+    SignupResponseData,
 } from '@/api/MypageApi';
 
 // ──────────── Types ─────────────────────────────────────────────────
@@ -322,7 +323,7 @@ export const useAuthStore = create<AuthStoreState>()(
                     if (get().user) {
                         // 기존 user 정보에 payload와 서버 응답 데이터를 병합하여 업데이트
                         set({
-                            user: { ...get().user, ...payload, ...response.data },
+                            user: { ...get().user, ...payload, ...(response.data as UserInfoData) },
                             isLoading: false,
                         });
                     } else {
@@ -341,7 +342,7 @@ export const useAuthStore = create<AuthStoreState>()(
                 set({ isLoading: true });
                 try {
                     const response = await apiSignup(payload);
-                    const { accessToken, refreshToken } = response.data;
+                    const { accessToken, refreshToken } = response.data as SignupResponseData;
 
                     if (!accessToken || !refreshToken) {
                         throw new Error('회원가입 응답에 토큰이 누락되었습니다.');

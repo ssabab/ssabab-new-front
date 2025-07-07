@@ -2,6 +2,73 @@
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React, { useState, useEffect, useCallback } from 'react';
+
+interface MonthlyAnalysisData {
+  monthlyVisitors: {
+    current: number;
+    previous: number;
+    totalCumulative: number;
+  };
+  cumulativeEvaluations: {
+    currentMonth: number;
+    totalCumulative: number;
+  };
+  monthlyOverallRating: {
+    average: number;
+  };
+  topFoods: Array<{
+    name: string;
+    rating: number;
+    reviews: number;
+  }>;
+  worstFoods: Array<{
+    name: string;
+    rating: number;
+    reviews: number;
+  }>;
+  frequentVisitors: Array<{
+    name: string;
+    visits: number;
+    lastVisit: string;
+  }>;
+}
+
+interface PersonalAnalysisData {
+  dm_user_summary: {
+    avgScore: number;
+    totalReviews: number;
+    preVoteCount: number;
+  };
+  dm_user_food_rating_rank_best: Array<{
+    foodName: string;
+    foodScore: number;
+  }>;
+  dm_user_food_rating_rank_worst: Array<{
+    foodName: string;
+    foodScore: number;
+  }>;
+  dm_user_category_stats: Array<{
+    category: string;
+    count: number;
+  }>;
+  dm_user_tag_stats: Array<{
+    tag: string;
+    count: number;
+  }>;
+  dm_user_review_word: Array<{
+    word: string;
+    count: number;
+  }>;
+  dm_user_insight: {
+    insight: string;
+  };
+  dm_user_group_comparison: {
+    userAvgScore: number;
+    groupAvgScore: number;
+    userDiversityScore: number;
+    groupDiversityScore: number;
+  };
+}
 // Next.js에서 페이지 간 이동을 위해 'next/link' 컴포넌트를 사용하는 것이 일반적입니다.
 // <a href="..."> 대신 <Link href="...">를 사용하는 것을 권장합니다.
 // import Link from 'next/link';
@@ -25,8 +92,8 @@ export default function AnalysisPage() {
   const [messageBoxText, setMessageBoxText] = useState('');
 
   // API 데이터 상태 관리
-  const [monthlyData, setMonthlyData] = useState(null);
-  const [personalData, setPersonalData] = useState(null);
+  const [monthlyData, setMonthlyData] = useState<MonthlyAnalysisData | null>(null);
+  const [personalData, setPersonalData] = useState<PersonalAnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,8 +125,8 @@ export default function AnalysisPage() {
       }
       const data = await response.json();
       setMonthlyData(data);
-    } catch (err: any) {
-      setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+    } catch (err: unknown) {
+      setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + (err as Error).message);
       showMessage('월간 분석 데이터를 가져오는 데 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -96,12 +163,12 @@ export default function AnalysisPage() {
       }
       const data = await response.json();
       setPersonalData(data);
-    } catch (err: any) {
-      if (err.message === 'DataNotFound') {
+    } catch (err: unknown) {
+      if ((err as Error).message === 'DataNotFound') {
         setError('아직 데이터가 수집되지 않았습니다.');
       } else {
-        setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
-        showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+        setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + (err as Error).message);
+        showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + (err as Error).message);
       }
     } finally {
       setIsLoading(false);
@@ -119,7 +186,7 @@ export default function AnalysisPage() {
 
 
   // 월간 분석 콘텐츠 렌더링 함수
-  const renderMonthlyAnalysis = (data: any) => { // data 타입을 any로 변경하여 유연하게 사용
+  const renderMonthlyAnalysis = (data: MonthlyAnalysisData) => {
     if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
 
     return (
@@ -138,7 +205,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 TOP 5 음식</h2>
           <div className="space-y-3 text-gray-800">
-            {data.topFoods.map((food: any, index: number) => (
+            {data.topFoods.map((food: { name: string; rating: number; reviews: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.name}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -153,7 +220,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 WORST 5 음식</h2>
           <div className="space-y-3 text-gray-800">
-            {data.worstFoods.map((food: any, index: number) => (
+            {data.worstFoods.map((food: { name: string; rating: number; reviews: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.name}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -168,7 +235,7 @@ export default function AnalysisPage() {
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 방문한 사용자</h2>
           <ul className="list-disc list-inside space-y-2 text-lg text-gray-800">
-            {data.frequentVisitors.map((visitor: any, index: number) => (
+            {data.frequentVisitors.map((visitor: { name: string; visits: number; lastVisit: string; }, index: number) => (
               <li key={index}><strong>{visitor.name}</strong>: {visitor.visits}회 방문 (마지막 방문: {visitor.lastVisit})</li>
             ))}
           </ul>
@@ -178,7 +245,7 @@ export default function AnalysisPage() {
   };
 
   // 개인 분석 콘텐츠 렌더링 함수
-  const renderPersonalAnalysis = (data: any) => { // data 타입을 any로 변경하여 유연하게 사용
+  const renderPersonalAnalysis = (data: PersonalAnalysisData) => {
     if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
 
     const userSummary = data.dm_user_summary;
@@ -191,8 +258,8 @@ export default function AnalysisPage() {
     const groupComparison = data.dm_user_group_comparison;
 
     // Calculate max count for category and tag stats for scaling bars
-    const maxCategoryCount = Math.max(...categoryStats.map((stat: any) => stat.count));
-    const maxTagCount = Math.max(...tagStats.map((stat: any) => stat.count));
+    const maxCategoryCount = Math.max(...categoryStats.map((stat: { category: string; count: number; }) => stat.count));
+    const maxTagCount = Math.max(...tagStats.map((stat: { tag: string; count: number; }) => stat.count));
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -208,7 +275,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 좋아하는 음식 TOP 5</h2>
           <div className="space-y-3 text-gray-800">
-            {bestFoods.map((food: any, index: number) => (
+            {bestFoods.map((food: { foodName: string; foodScore: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.foodName}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -223,7 +290,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 싫어하는 음식 WORST 5</h2>
           <div className="space-y-3 text-gray-800">
-            {worstFoods.map((food: any, index: number) => (
+            {worstFoods.map((food: { foodName: string; foodScore: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{food.foodName}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -238,7 +305,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">카테고리별 리뷰 통계</h2>
           <div className="space-y-3 text-gray-800">
-            {categoryStats.map((stat: any, index: number) => (
+            {categoryStats.map((stat: { category: string; count: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{stat.category}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -253,7 +320,7 @@ export default function AnalysisPage() {
         <div className="analysis-card">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">태그별 리뷰 통계</h2>
           <div className="space-y-3 text-gray-800">
-            {tagStats.map((stat: any, index: number) => (
+            {tagStats.map((stat: { tag: string; count: number; }, index: number) => (
               <div key={index} className="flex items-center">
                 <span className="w-1/4 text-left font-medium">{stat.tag}</span>
                 <div className="w-2/4 graph-bar-container">
@@ -268,7 +335,7 @@ export default function AnalysisPage() {
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 사용한 리뷰 단어</h2>
           <ul className="list-disc list-inside space-y-2 text-lg flex flex-wrap gap-x-4 text-gray-800">
-            {reviewWords.map((word: any, index: number) => (
+            {reviewWords.map((word: { word: string; count: number; }, index: number) => (
               <li key={index}><strong>{word.word}</strong>: {word.count}회</li>
             ))}
           </ul>
@@ -433,7 +500,11 @@ export default function AnalysisPage() {
               {isLoading && <p className="text-gray-800 text-xl">데이터를 로드 중입니다...</p>}
               {error && <p className="text-red-600 text-xl">{error}</p>}
               {!isLoading && !error && (
-                activeTab === 'monthly' ? renderMonthlyAnalysis(monthlyData) : renderPersonalAnalysis(personalData)
+                activeTab === 'monthly' ? (
+                  monthlyData && renderMonthlyAnalysis(monthlyData)
+                ) : (
+                  personalData && renderPersonalAnalysis(personalData)
+                )
               )}
             </div>
           </div>

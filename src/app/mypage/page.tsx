@@ -1,9 +1,12 @@
+'use client';
+
+import { AxiosError } from 'axios';
+
 // app/mypage/page.tsx
- 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'; // useRef 추가
- import Head from 'next/head';
-import Link from 'next/link';
+import Image from 'next/image';
+
 import { useAuthStore } from '@/store/AuthStore';
 import {
     addFriend,
@@ -23,11 +26,11 @@ import {
         isLoading,
         isAuthInitialized,
          logout,
-         fetchUserInfo,
+         
          updateUserInformation,
         initializeAuth,
         socialLoginTempData,
-        signup,
+
     } = useAuthStore();
 
      const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -190,10 +193,10 @@ import {
              showMessage(`'${trimmedFriendName}'님을 친구로 추가했습니다!`);
             setFriendNameInput('');
             loadFriendList();
-         } catch (error: any) {
+         } catch (error: unknown) {
              console.error("친구 추가 실패:", error);
-             if (error.response && error.response.data && error.response.data.message) {
-                 showMessage(`친구 추가 실패: ${error.response.data.message}`);
+             if ((error as AxiosError).response && (error as AxiosError).response?.data && ((error as AxiosError).response?.data as { message?: string }).message) {
+                 showMessage(`친구 추가 실패: ${((error as AxiosError).response?.data as { message?: string }).message}`);
              } else {
                  showMessage("친구 추가에 실패했습니다.");
              }
@@ -331,14 +334,14 @@ import {
             
             showMessage("회원가입이 완료되었습니다! 마이페이지를 이용할 수 있습니다.");
             
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("회원가입 실패:", error);
-            if (error.response && error.response.data && error.response.data.message) {
-                showMessage(`회원가입 실패: ${error.response.data.message}`);
-            } else if (error.message === "Network Error") {
+            if ((error as AxiosError).response && (error as AxiosError).response?.data && ((error as AxiosError).response?.data as { message?: string }).message) {
+                showMessage(`회원가입 실패: ${((error as AxiosError).response?.data as { message?: string }).message}`);
+            } else if ((error as Error).message === "Network Error") {
                 showMessage("회원가입에 실패했습니다: 서버 연결 또는 네트워크 오류. 백엔드의 CORS 설정을 확인해주세요.");
-            } else if (error.message) {
-                showMessage(`회원가입 실패: ${error.message}`);
+            } else if ((error as Error).message) {
+                showMessage(`회원가입 실패: ${(error as Error).message}`);
             }
             else {
                 showMessage("회원가입에 실패했습니다.");
@@ -497,10 +500,12 @@ import {
                                  <div className="profile-card text-center space-y-4">
                                      <h2 className="text-2xl font-bold text-gray-800 mb-4">내 프로필</h2>
 
-                                     <img
+                                     <Image
                                          id="profilePic"
                         src={user?.profileImage || "https://placehold.co/120x120/cccccc/333333?text=Profile"}
                                          alt="프로필 사진"
+                                         width={120}
+                                         height={120}
                                          className="profile-pic mx-auto"
                                      />
 
@@ -615,12 +620,7 @@ import {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Head>
-                <title>마이페이지</title>
-                <meta charSet="UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-            </Head>
+            
 
             {messageBoxVisible && (
                 <div id="messageBoxOverlay" className="message-box-overlay visible" onClick={hideMessage}>

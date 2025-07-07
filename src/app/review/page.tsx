@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMenuStore, Menu, toYYYYMMDD } from '@/store/MenuStore';
-import { submitPreVote, SubmitPreVotePayload } from '@/api/ReviewApi';
+import { submitPreVote, SubmitPreVotePayload, checkPreVoteStatus, checkEvaluationStatus } from '@/api/ReviewApi';
 
 const getCookieValue = (name: string): string | null => {
   if (typeof document === 'undefined') {
@@ -98,11 +98,39 @@ export default function ReviewPage() {
     setActiveSection(currentHour < 12 ? 'preVote' : 'evaluation');
   }, [fetchWeeklyMenu]);
   
+  const checkVoteStatus = useCallback(async () => {
+    if (isToday && selectedDateMenu) {
+      const dateStr = toYYYYMMDD(selectedDate);
+      
+      if (activeSection === 'preVote') {
+        const preVoteStatus = await checkPreVoteStatus(dateStr);
+        if (preVoteStatus.menuId) {
+          if (selectedDateMenu.menu1?.menuId === preVoteStatus.menuId) {
+            setSelectedPreVoteMenuType('menu1');
+          } else if (selectedDateMenu.menu2?.menuId === preVoteStatus.menuId) {
+            setSelectedPreVoteMenuType('menu2');
+          }
+        }
+      } else if (activeSection === 'evaluation') {
+        const evalStatus = await checkEvaluationStatus(dateStr);
+        if (evalStatus.menuId) {
+          setSelectedEvalMenuId(evalStatus.menuId);
+        }
+      }
+    }
+  }, [isToday, selectedDateMenu, selectedDate, activeSection]);
+
+  useEffect(() => {
+    if (!isLoading && selectedDateMenu) {
+      checkVoteStatus();
+    }
+  }, [isLoading, selectedDateMenu, checkVoteStatus]);
+  
   // 날짜가 변경될 때마다 선택 상태 초기화
   useEffect(() => {
     setSelectedEvalMenuId(null);
     setSelectedPreVoteMenuType(null);
-  }, [selectedDateMenu]);
+  }, [selectedDate]);
 
   const showMessage = (message: string, onOkCallback: (() => void) | null = null) => {
     setMessageBoxText(message);

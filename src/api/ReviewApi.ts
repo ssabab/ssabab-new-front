@@ -11,6 +11,8 @@ const getCookieValue = (name: string): string | null => {
   return null;
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 /**
  * Axios 인스턴스 생성
  */
@@ -99,4 +101,44 @@ export interface SubmitPreVotePayload {
 export const submitPreVote = async (payload: SubmitPreVotePayload): Promise<ApiResponse > => {
   const response = await api.post('/api/vote', payload);
   return response.data;
+};
+
+export const checkPreVoteStatus = async (date: string): Promise<{ menuId: number | null }> => {
+  const token = getCookieValue('accessToken');
+  if (!token) return { menuId: null };
+
+  const response = await fetch(`${API_BASE_URL}/api/vote?date=${date}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return { menuId: null };
+    }
+    console.error('사전 투표 상태 확인 실패:', response);
+    return { menuId: null };
+  }
+  return response.json();
+};
+
+export const checkEvaluationStatus = async (date: string): Promise<{ menuId: number | null }> => {
+  const token = getCookieValue('accessToken');
+  if (!token) return { menuId: null };
+  
+  const response = await fetch(`${API_BASE_URL}/api/review/menu?date=${date}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return { menuId: null };
+    }
+    console.error('평가 상태 확인 실패:', response);
+    return { menuId: null };
+  }
+  return response.json();
 };

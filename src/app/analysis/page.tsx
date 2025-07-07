@@ -322,10 +322,10 @@ export default function AnalysisPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">내 리뷰 요약</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
-            <p><strong>평균 점수:</strong> {dm_user_summary.avgScore?.toFixed(2)} / 5</p>
-            <p><strong>총 리뷰 수:</strong> {dm_user_summary.totalReviews}건</p>
-            <p><strong>사전 투표 수:</strong> {dm_user_summary.preVoteCount}회</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-lg text-black text-center">
+            <p><strong>평균 점수:</strong><br/>{(dm_user_summary.avgScore?.toFixed(2)) ?? 'N/A'} / 5</p>
+            <p><strong>총 리뷰 수:</strong><br/>{dm_user_summary.totalReviews ?? 0}건</p>
+            <p><strong>사전 투표 수:</strong><br/>{dm_user_summary.preVoteCount ?? 0}회</p>
           </div>
         </div>
 
@@ -405,11 +405,9 @@ export default function AnalysisPage() {
 
         <div className="analysis-card col-span-full">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">전체 사용자 그룹 비교</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
-            <p><strong>내 평균 점수:</strong> {dm_user_group_comparison.userAvgScore?.toFixed(2)}</p>
-            <p><strong>전체 그룹 평균 점수:</strong> {dm_user_group_comparison.groupAvgScore?.toFixed(2)}</p>
-            <p><strong>내 다양성 점수:</strong> {dm_user_group_comparison.userDiversityScore?.toFixed(1)}</p>
-            <p><strong>전체 그룹 다양성 점수:</strong> {dm_user_group_comparison.groupDiversityScore?.toFixed(1)}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800 text-center">
+            <p><strong>평균 점수 (나/그룹):</strong><br/>{dm_user_group_comparison.userAvgScore?.toFixed(2) ?? 'N/A'} / {dm_user_group_comparison.groupAvgScore?.toFixed(2) ?? 'N/A'}</p>
+            <p><strong>다양성 점수 (나/그룹):</strong><br/>{dm_user_group_comparison.userDiversityScore?.toFixed(1) ?? 'N/A'} / {dm_user_group_comparison.groupDiversityScore?.toFixed(1) ?? 'N/A'}</p>
           </div>
         </div>
       </div>

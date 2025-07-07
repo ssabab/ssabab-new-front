@@ -185,9 +185,8 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       <style jsx global>{`
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; overflow-x: hidden; overflow-y: auto; }
         .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
         .section-gradient-sunset { background: linear-gradient(to right, #FF7E5F, #FEB47B); }
         .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
@@ -205,7 +204,6 @@ export default function ReviewPage() {
         .message-box-content button { background-color: #4CAF50; color: white; padding: 0.75rem 2rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold; transition: background-color 0.2s ease; }
         .message-box-content button:hover { background-color: #45a049; }
       `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
 
       {messageBoxVisible && (
         <div className="message-box-overlay visible" onClick={handleConfirm}>
@@ -215,23 +213,6 @@ export default function ReviewPage() {
           </div>
         </div>
       )}
-
-      <header className="bg-white shadow-md py-4">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</Link>
-          <nav>
-            <ul className="flex space-x-6">
-              <li><Link href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
-              <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</Link></li>
-              <li><Link href="/review" className="text-blue-600 font-bold rounded-lg">평가하기</Link></li>
-              <li><Link href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</Link></li>
-              <li><Link href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-grow">
         <div className="text-center my-4 space-x-2">
             <button
                 onClick={() => setActiveSection('preVote')}
@@ -293,18 +274,6 @@ export default function ReviewPage() {
             </div>
           </div>
         )}
-      </main>
-
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
-          <div className="flex justify-center space-x-6 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }

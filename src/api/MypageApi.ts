@@ -164,6 +164,15 @@ export const getAccountInfo = (): Promise<AxiosResponse<UserInfoData>> =>
 export const updateAccountInfo = (payload: UpdateUserInfoPayload): Promise<AxiosResponse<any>> =>
   MypageApi.put('/account/update', payload);
 
+/**
+ * 사용자 이름 중복을 체크하는 함수
+ * @param username 중복을 확인할 사용자 이름
+ * @returns Promise<AxiosResponse<boolean>> true이면 존재, false이면 존재하지 않음
+ */
+export const checkUsernameExists = (username: string): Promise<AxiosResponse<boolean>> =>
+  MypageApi.get(`/account/check-username?username=${username}`);
+
+
 // 6. 소셜 (친구) API
 /**
  * 친구 목록을 조회하는 함수

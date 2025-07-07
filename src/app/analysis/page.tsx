@@ -284,19 +284,8 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/*
-        Tailwind CSS CDN 로딩과 폰트 임포트는 Next.js 프로젝트의 'src/app/layout.tsx'
-        또는 'src/app/globals.css'에서 전역적으로 처리하는 것이 일반적입니다.
-        여기서는 데모를 위해 직접 포함했지만, 실제 프로젝트에서는 옮기는 것을 권장합니다.
-      */}
+    <>
       <style jsx global>{`
-        body {
-          font-family: 'Inter', sans-serif;
-          background-color: #ffffff; /* 기본 배경색 */
-          overflow-x: hidden; /* 가로 스크롤 방지 */
-          overflow-y: auto; /* 세로 스크롤 허용 */
-        }
         .section-gradient-yellow {
           background: linear-gradient(to bottom, #FFD700, #FFE066); /* 황금색에서 더 밝은 노란색으로 */
         }
@@ -391,25 +380,8 @@ export default function AnalysisPage() {
             font-weight: 600;
         }
       `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
 
-      {/* Header Section */}
-      <header className="bg-white shadow-md py-4">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <a href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</a>
-          <nav>
-            <ul className="flex space-x-6">
-              <li><a href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
-              <li><a href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</a></li>
-              <li><a href="/review" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</a></li>
-              <li><a href="/analysis" className="text-blue-600 font-bold rounded-lg">분석보기</a></li>
-              <li><a href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-grow section-gradient-yellow">
+      <div className="section-gradient-yellow">
         {/* Custom Message Box */}
         <div id="messageBoxOverlay" className={`message-box-overlay ${messageBoxVisible ? 'visible' : ''}`} onClick={hideMessage}>
           <div className="message-box-content">
@@ -457,19 +429,7 @@ export default function AnalysisPage() {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer Section */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
-          <div className="flex justify-center space-x-6 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </>
   );
 }

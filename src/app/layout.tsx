@@ -18,8 +18,14 @@ export const metadata: Metadata = {
   title: "ssabab",
   description: "대전 싸피 밥에 대한 맛 평가 서비스. 실패 없는 밥 선택을 응원합니다.",
   icons: {
-    icon: "/ssabab.png",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

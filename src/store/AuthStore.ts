@@ -2,20 +2,31 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { jwtDecode } from 'jwt-decode';
-import api, { refreshAccessToken, getAccountInfo, updateAccountInfo, UserInfoData, UpdateUserInfoPayload } from '@/api/MypageApi';
+import api, {
+    refreshAccessToken,
+    getAccountInfo,
+    updateAccountInfo,
+    UserInfoData,
+    UpdateUserInfoPayload,
+    signup as apiSignup,
+    SignupPayload,
+    getCookieValue,
+    setCookie,
+    removeCookie,
+} from '@/api/MypageApi';
 
 // ──────────── Types ─────────────────────────────────────────────────
 
 // UserInfoData에 isNewUser 필드 추가 (선택 사항이며, 백엔드 로직에 따라 조절)
 // 백엔드에서 초기 소셜 로그인 시 isNewUser 필드를 내려주면 더 명확합니다.
 // 여기서는 편의상 ssafyYear나 classNum이 없으면 isNewUser로 간주하는 로직을 mypage에서 사용합니다.
-export type AuthUser = (UserInfoData & { isNewUser?: boolean }) | null; // isNewUser 추가
+export type AuthUser = (UserInfoData & { isNewUser?: boolean }) | null;
 
 interface AuthStoreState {
     clearAuth: () => void;
     token: string | null;
     refreshToken: string | null;
-    user: AuthUser; // AuthUser 타입 사용
+    user: AuthUser;
     isLoading: boolean;
     isAuthenticated: boolean;
     isAuthInitialized: boolean;
@@ -36,14 +47,12 @@ interface AuthStoreState {
     clearRefreshToken: () => void;
     setUser: (user: AuthUser) => void;
     setLoading: (loading: boolean) => void;
-    // login: (username: string, password: string) => Promise<void>; // 일반 로그인 로직은 필요 없으므로 제거
-    // signup: (username: string, password: string, nickname: string) => Promise<void>; // 일반 회원가입 로직은 필요 없으므로 제거
-    // handleSocialLogin: (accessToken: string, refreshToken: string) => void; // initializeAuth에서 처리하므로 제거
     logout: () => void;
     initializeAuth: () => void;
     checkAuthStatus: () => boolean;
     fetchUserInfo: () => Promise<void>;
     updateUserInformation: (payload: UpdateUserInfoPayload) => Promise<void>;
+    signup: (payload: SignupPayload) => Promise<void>; // 회원가입 액션 추가
 }
 
 // ──────────── Utility Functions ─────────────────────────────────────────
@@ -52,7 +61,6 @@ interface AuthStoreState {
 // AuthStore 내부에서만 사용된다면 여기에 정의해도 무방하지만,
 // 중복을 피하고 MypageApi.ts에서 가져다 쓰는 것이 좋습니다.
 // 여기서는 일관성을 위해 MypageApi.ts의 것을 사용하도록 하겠습니다.
-import { getCookieValue, setCookie, removeCookie } from '@/api/MypageApi';
 
 
 // URL 파라미터에서 토큰 및 소셜 로그인 정보 추출 함수 수정
@@ -325,6 +333,37 @@ export const useAuthStore = create<AuthStoreState>()(
                     console.error('Failed to update user info:', error);
                     set({ isLoading: false });
                     throw error; // 에러를 호출자에게 전파
+                }
+            },
+
+            // 회원가입 액션
+            signup: async (payload: SignupPayload) => {
+                set({ isLoading: true });
+                try {
+                    const response = await apiSignup(payload);
+                    const { accessToken, refreshToken } = response.data;
+
+                    if (!accessToken || !refreshToken) {
+                        throw new Error('회원가입 응답에 토큰이 누락되었습니다.');
+                    }
+
+                    // setToken과 setRefreshToken 액션을 사용하여 토큰을 상태와 쿠키에 저장
+                    get().setToken(accessToken);
+                    get().setRefreshToken(refreshToken);
+
+                    set({
+                        isAuthenticated: true,
+                        socialLoginTempData: null, // 임시 데이터 제거
+                    });
+
+                    // 토큰 저장 후 최신 사용자 정보를 가져옴
+                    await get().fetchUserInfo();
+                } catch (error) {
+                    console.error('회원가입에 실패했습니다:', error);
+                    get().logout(); // 실패 시 모든 인증 관련 상태를 초기화
+                    throw error; // 에러를 상위로 전파하여 UI에서 처리하도록 함
+                } finally {
+                    set({ isLoading: false });
                 }
             },
         }),

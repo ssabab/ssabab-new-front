@@ -396,10 +396,11 @@ export default function AnalysisPage() {
       {/* Header Section */}
       <header className="bg-white shadow-md py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <a href="/main" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</a>
+          <a href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</a>
           <nav>
             <ul className="flex space-x-6">
-              <li><a href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
+              <li><a href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</a></li>
+              <li><a href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</a></li>
               <li><a href="/review" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">평가하기</a></li>
               <li><a href="/analysis" className="text-blue-600 font-bold rounded-lg">분석보기</a></li>
               <li><a href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</a></li>

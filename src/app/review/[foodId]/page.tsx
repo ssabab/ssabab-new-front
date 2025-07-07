@@ -20,7 +20,7 @@ const StarRating: React.FC<{ rating: number; onRating: (rating: number) => void 
       </svg>
     ))}
   </div>
-);
+);  
 
 export default function DetailedReviewPage() {
   const params = useParams();
@@ -38,6 +38,15 @@ export default function DetailedReviewPage() {
   const [messageBoxText, setMessageBoxText] = useState('');
   
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+  // 컴포넌트가 언마운트될 때 body 스크롤을 항상 복원하도록 보장합니다.
+  useEffect(() => {
+    // 이 useEffect는 마운트될 때 아무 작업도 하지 않습니다.
+    // 대신, 컴포넌트가 사라질 때 실행될 클린업 함수를 반환합니다.
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []); // 의존성 배열을 비워 마운트 시 한 번만 실행되도록 합니다.
 
   useEffect(() => {
     if (weeklyMenus.length === 0) {
@@ -187,21 +196,6 @@ export default function DetailedReviewPage() {
          </div>
       )}
 
-      <header className="bg-white shadow-md py-4">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-800 rounded-lg">SSABAB</Link>
-          <nav>
-            <ul className="flex space-x-6">
-              <li><Link href="/" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">홈</Link></li>
-              <li><Link href="/main" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">소개</Link></li>
-              <li><Link href="/review" className="text-blue-600 font-bold rounded-lg">평가하기</Link></li>
-              <li><Link href="/analysis" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">분석보기</Link></li>
-              <li><Link href="/mypage" className="text-gray-600 hover:text-blue-600 font-medium rounded-lg">마이페이지</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
       <main className="flex-grow">
         <div className="py-16 md:py-24 px-4 section-gradient-green text-white text-center">
           <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
@@ -262,17 +256,6 @@ export default function DetailedReviewPage() {
           </div>
         </div>
       </main>
-
-      <footer className="bg-gray-800 text-white py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 오늘의 메뉴. 모든 권리 보유.</p>
-          <div className="flex justify-center space-x-6 mt-4">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">개인정보처리방침</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">이용약관</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200 rounded-lg">문의</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

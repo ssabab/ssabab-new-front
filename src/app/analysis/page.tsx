@@ -87,13 +87,22 @@ export default function AnalysisPage() {
         throw new Error('인증되지 않았습니다. 다시 로그인해주세요.');
       }
       if (!response.ok) {
+        // 응답 본문을 확인하여 "DataNotFound" 에러인지 확인합니다.
+        const errorData = await response.json().catch(() => null); // JSON 파싱 실패를 대비
+        if (response.status === 404 && errorData?.error === 'DataNotFound') {
+            throw new Error('DataNotFound'); // 특별한 에러 타입으로 던집니다.
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       setPersonalData(data);
     } catch (err: any) {
-      setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
-      showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+      if (err.message === 'DataNotFound') {
+        setError('아직 데이터가 수집되지 않았습니다.');
+      } else {
+        setError('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+        showMessage('개인 분석 데이터를 가져오는 데 실패했습니다: ' + err.message);
+      }
     } finally {
       setIsLoading(false);
     }

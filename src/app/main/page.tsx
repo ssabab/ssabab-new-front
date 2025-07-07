@@ -2,9 +2,7 @@
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React from 'react';
-// Next.js에서 페이지 간 이동을 위해 'next/link' 컴포넌트를 사용하는 것이 일반적입니다.
-// <a href="..."> 대신 <Link href="...">를 사용하는 것을 권장합니다.
-// import Link from 'next/link';
+import Link from 'next/link';
 
 export default function MainPage() {
   return (
@@ -27,12 +25,14 @@ export default function MainPage() {
                 SSABAB은 사용자들의 식사 메뉴 선택을 돕고, 식단 평가를 통해 더 나은 식사 경험을 제공하는 혁신적인 서비스입니다.
                 매일 새로운 메뉴를 추천받고, 솔직한 리뷰를 남겨보세요. 당신의 소중한 의견이 모두의 식사를 풍요롭게 만듭니다.
               </p>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
-                SSABAB 더 알아보기
-              </button>
+              <Link href="/review">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
+                  SSABAB으로 평가하기
+                </button>
+              </Link>
             </div>
             <div className="md:w-1/2 flex justify-center">
-              <img src="https://placehold.co/500x500/87CEEB/FFFFFF?text=SSABAB+서비스" alt="SSABAB 서비스 이미지" className="w-full max-w-md rounded-lg shadow-xl" />
+              <img src="ssabab.png" alt="SSABAB 서비스 이미지" className="w-full max-w-md rounded-lg shadow-xl" />
             </div>
           </div>
         </section>
@@ -41,7 +41,7 @@ export default function MainPage() {
         <section className="section-gradient-gold text-white py-16 md:py-24 rounded-lg shadow-inner mx-4 my-8">
           <div className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center md:space-x-12">
             <div className="md:w-1/2 flex justify-center">
-              <img src="https://placehold.co/500x500/FFC0CB/FFFFFF?text=팀+해리네" alt="팀 해리네 이미지" className="w-full max-w-md rounded-lg shadow-xl" />
+              <img src="/haerine.png" alt="팀 해리네 이미지" className="w-full max-w-md rounded-lg shadow-xl" />
             </div>
             <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
               <h2 className="text-3xl md:text-5xl font-bold text-shadow mb-4">팀 해리네</h2>
@@ -50,9 +50,11 @@ export default function MainPage() {
                 사용자들에게 최고의 경험을 제공하기 위해 끊임없이 고민하고 노력하며,
                 기술과 아이디어를 통해 더 나은 세상을 만들고자 합니다.
               </p>
-              <button className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
-                팀 해리네 소개
-              </button>
+              <a href="https://github.com/ssabab" target="_blank" rel="noopener noreferrer">
+                <button className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300">
+                  팀 해리네 Github
+                </button>
+              </a>
             </div>
           </div>
         </section>

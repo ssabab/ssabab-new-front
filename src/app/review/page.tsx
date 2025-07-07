@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMenuStore, Menu } from '@/store/MenuStore';
+import { useMenuStore, Menu, toYYYYMMDD } from '@/store/MenuStore';
 import { submitPreVote, SubmitPreVotePayload } from '@/api/ReviewApi';
 
 const getCookieValue = (name: string): string | null => {
@@ -89,7 +89,8 @@ export default function ReviewPage() {
   const [messageBoxText, setMessageBoxText] = useState('');
   const [messageBoxOkCallback, setMessageBoxOkCallback] = useState<(() => void) | null>(null);
   
-  const { selectedDateMenu, isLoading, error, fetchWeeklyMenu } = useMenuStore();
+  const { selectedDate, selectedDateMenu, isLoading, error, fetchWeeklyMenu } = useMenuStore();
+  const isToday = toYYYYMMDD(selectedDate) === toYYYYMMDD(new Date());
 
   useEffect(() => {
     fetchWeeklyMenu();
@@ -212,20 +213,6 @@ export default function ReviewPage() {
           </div>
         </div>
       )}
-        <div className="text-center my-4 space-x-2">
-            <button
-                onClick={() => setActiveSection('preVote')}
-                className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded shadow"
-            >
-                (임시) 사전투표 보기 (오전)
-            </button>
-            <button
-                onClick={() => setActiveSection('evaluation')}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded shadow"
-            >
-                (임시) 메뉴평가 보기 (오후)
-            </button>
-        </div>
 
         {isLoading && <div className="text-center py-20 text-xl">메뉴 정보를 불러오는 중입니다...</div>}
         {error && <div className="text-center py-20 text-red-500">{error}</div>}
@@ -246,7 +233,7 @@ export default function ReviewPage() {
                 {!selectedDateMenu?.menu1 && !selectedDateMenu?.menu2 && <NoMenuCard />}
               </div>
               <div className="mt-12">
-                {selectedPreVoteMenuType && <button onClick={handlePreVoteSubmit} className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">사전 투표 제출하기</button>}
+                {selectedPreVoteMenuType && isToday && <button onClick={handlePreVoteSubmit} className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">사전 투표 제출하기</button>}
               </div>
             </div>
           </div>
@@ -268,7 +255,7 @@ export default function ReviewPage() {
                 {!selectedDateMenu?.menu1 && !selectedDateMenu?.menu2 && <NoMenuCard />}
               </div>
               <div className="mt-12">
-                {selectedEvalMenuId && <button onClick={handleGoToEvaluate} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">평가하러 가기</button>}
+                {selectedEvalMenuId && isToday && <button onClick={handleGoToEvaluate} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">평가하러 가기</button>}
               </div>
             </div>
           </div>

@@ -45,7 +45,10 @@ export const getWeekBoundary = (date: Date): { start: Date, end: Date } => {
  * @param date 변환할 Date 객체
  */
 export const toYYYYMMDD = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // --- Zustand 스토어 인터페이스 ---

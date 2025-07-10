@@ -94,8 +94,10 @@ export default function ReviewPage() {
 
   useEffect(() => {
     fetchWeeklyMenu();
-    const currentHour = new Date().getHours();
-    setActiveSection(currentHour < 12 ? 'preVote' : 'evaluation');
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    setActiveSection(currentHour < 11 || (currentHour === 11 && currentMinute < 30) ? 'preVote' : 'evaluation');
   }, [fetchWeeklyMenu]);
   
   const checkVoteStatus = useCallback(async () => {

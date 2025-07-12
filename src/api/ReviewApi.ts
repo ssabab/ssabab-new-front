@@ -69,6 +69,20 @@ export interface ApiResponse {
   message: string;
 }
 
+export interface FriendReview {
+  friendId: number
+  friendName: string
+  votedMenuId: number
+  votedMenuDate: string // ISO date
+  votedMenuInfo: {
+    foodId: number
+    foodName: string
+  }[]
+  averageMenuScore: number
+}
+
+
+
 /**
  * 개별 음식 별점을 제출하는 API
  * @param payload 음식 리뷰 페이로드
@@ -141,4 +155,12 @@ export const checkEvaluationStatus = async (date: string): Promise<{ menuId: num
     return { menuId: null };
   }
   return response.json();
+};
+
+/** 친구들의 메뉴 리뷰 정보 조회 */
+export const getFriendsMenuReviews = async (date: string): Promise<FriendReview[]> => {
+  const res = await api.get<{ reviews: FriendReview[] }>('/api/review/menu/friends', {
+    params: { date },
+  })
+  return res.data.reviews
 };

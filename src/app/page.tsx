@@ -87,21 +87,6 @@ export default function Home() {
           border-radius: 0.5rem; 
           font-size: 1rem; 
           font-weight: 500;
-        .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
-        .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
-        .menu-card.selected { border: 4px solid #FF8C42; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        #preVoteSection .menu-card.selected { border-color: #347BBF; }
-        #evaluationSection .menu-card.selected { border-color: #CC4444; }
-        .menu-list { list-style: none; padding: 0; margin-top: 1rem; text-align: left; width: 100%; }
-        .menu-list li { background-color: #f5f8fa; color: #4a5568; padding: 0.5rem 1rem; margin-bottom: 0.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 500; }
-        .menu-list li .main-dish { font-weight: 700; color: #2d3748; }
-        .message-box-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
-        .message-box-overlay.visible { opacity: 1; visibility: visible; }
-        .message-box-content { background-color: #fff; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); text-align: center; max-width: 400px; width: 90%; transform: scale(0.95); transition: transform 0.3s ease; }
-        .message-box-overlay.visible .message-box-content { transform: scale(1); }
-        .message-box-content p { font-size: 1.25rem; color: #333; margin-bottom: 1.5rem; font-weight: 600; }
-        .message-box-content button { background-color: #4CAF50; color: white; padding: 0.75rem 2rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold; transition: background-color 0.2s ease; }
-        .message-box-content button:hover { background-color: #45a049; }
         }
       `}</style>
 

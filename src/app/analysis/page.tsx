@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/AuthStore';
 import { getCookieValue } from '@/api/MypageApi';
+import { isLoggedIn } from '@/utils/auth';  // 새로운 간단한 함수 사용
 import MonthlyAnalysis from '@/component/analysis/MonthlyAnalysis'; // 월간 분석 컴포넌트 임포트
 import PersonalAnalysis from '@/component/analysis/PersonalAnalysis'; // 개인 분석 컴포넌트 임포트
 
@@ -142,7 +142,10 @@ export interface PersonalAnalysisData {
 
 export default function AnalysisPage() {
   const router = useRouter();
-  const { isAuthenticated, isAuthInitialized, initializeAuth } = useAuthStore();
+  
+  // 🎯 간단한 로그인 상태 확인
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
   
   // 활성 탭 상태 관리: 'monthly' 또는 'personal'
   const [activeTab, setActiveTab] = useState('monthly');
@@ -158,6 +161,17 @@ export default function AnalysisPage() {
 
   // 백엔드 API 기본 URL (환경 변수 또는 기본값)
   const BACKEND_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+  // 🚀 인증 상태 확인 - 매우 간단!
+  useEffect(() => {
+    const checkAuth = () => {
+      const authenticated = isLoggedIn();
+      setIsAuthenticated(authenticated);
+      setIsAuthChecked(true);
+    };
+    
+    checkAuth();
+  }, []);
 
   // 메시지 박스 표시 함수
   const showMessage = (message: string) => {
@@ -187,7 +201,7 @@ export default function AnalysisPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + message);
-      showMessage('월간 분석 데이터를 가져오는 데 실패했습니다.');
+      showMessage('월간 분석 데이터를 가져오는 데 실패했습니다: ' + message);
     } finally {
       setIsLoading(false);
     }
@@ -236,17 +250,10 @@ export default function AnalysisPage() {
     }
   }, [BACKEND_API_BASE_URL]);
 
-  // 컴포넌트 마운트 시 인증 상태 초기화
-  useEffect(() => {
-    if (!isAuthInitialized) {
-      initializeAuth();
-    }
-  }, [isAuthInitialized, initializeAuth]);
-
-  // 개인 분석 탭 클릭 시 인증 확인
+  // 🎯 개인 분석 탭 클릭 시 인증 확인 - 간단해졌습니다!
   const handleTabChange = (tab: string) => {
     if (tab === 'personal') {
-      if (!isAuthInitialized) {
+      if (!isAuthChecked) {
         showMessage('인증 상태를 확인하고 있습니다. 잠시 후 다시 시도해주세요.');
         return;
       }
@@ -267,11 +274,11 @@ export default function AnalysisPage() {
       fetchMonthlyAnalysisData();
     } else if (activeTab === 'personal') {
       // 개인 분석은 인증된 사용자만 접근 가능
-      if (isAuthInitialized && isAuthenticated) {
+      if (isAuthChecked && isAuthenticated) {
         fetchPersonalAnalysisData();
       }
     }
-  }, [activeTab, isAuthInitialized, isAuthenticated, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
+  }, [activeTab, isAuthChecked, isAuthenticated, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
 
 
   return (

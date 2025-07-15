@@ -1,13 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/store/AuthStore';
+import { isLoggedIn } from '@/utils/auth';
 
 export default function Header() {
   const pathname = usePathname();
-  const { isAuthenticated, isAuthInitialized } = useAuthStore();
+  
+  // 🎯 간단한 로그인 상태 관리
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 🚀 인증 상태 확인 - 매우 간단!
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(isLoggedIn());
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+    
+    // 주기적으로 인증 상태 확인 (다른 탭에서 로그인/로그아웃 시)
+    const interval = setInterval(checkAuth, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -25,8 +43,8 @@ export default function Header() {
       { href: '/analysis', label: '분석보기' },
     ];
 
-    // 인증 상태가 초기화되지 않았으면 기본 아이템만 반환
-    if (!isAuthInitialized) {
+    // 🎯 로딩 중이면 기본 아이템만 반환
+    if (isLoading) {
       return baseItems;
     }
 

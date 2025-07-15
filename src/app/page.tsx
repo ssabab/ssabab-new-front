@@ -28,10 +28,11 @@ const getCookieValue = (name: string): string | null => {
 };
 
 // --- 날짜 네비게이터 컴포넌트 ---
-const DateNavigator = ({ selectedDate, setSelectedDate, weeklyMenus }: { 
+const DateNavigator = ({ selectedDate, setSelectedDate, weeklyMenus, isClient }: { 
   selectedDate: Date; 
   setSelectedDate: (date: Date) => void; 
-  weeklyMenus: DailyMenu[] 
+  weeklyMenus: DailyMenu[];
+  isClient: boolean;
 }) => {
   const handlePrevDay = () => {
     const newDate = new Date(selectedDate);
@@ -57,7 +58,9 @@ const DateNavigator = ({ selectedDate, setSelectedDate, weeklyMenus }: {
       <button onClick={handlePrevDay} disabled={isPrevDisabled} className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
       </button>
-      <h2 className="text-2xl font-bold text-shadow">{selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}</h2>
+      <h2 className="text-2xl font-bold text-shadow">
+        {isClient ? selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '날짜를 불러오는 중...'}
+      </h2>
       <button onClick={handleNextDay} disabled={isNextDisabled} className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
@@ -181,7 +184,6 @@ export default function Home() {
     if (accessToken && refreshToken) {
       document.cookie = `accessToken=${accessToken}; path=/; max-age=604800; samesite=strict; secure`;
       document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800; samesite=strict; secure`;
-      console.log('토큰이 쿠키에 저장되었습니다.');
       router.replace('/');
     }
   }, [router, isClient]);
@@ -191,13 +193,10 @@ export default function Home() {
     try {
       setIsLoading(true);
       const data = await getWeeklyMenu();
-      console.log('받아온 주간 메뉴 데이터:', data);
-      console.log('weeklyMenus:', data.weeklyMenus);
       setWeeklyMenus(data.weeklyMenus);
       setError(null);
     } catch (err) {
       setError('메뉴 데이터를 불러오는 중 오류가 발생했습니다.');
-      console.error('주간 메뉴 데이터 로딩 실패:', err);
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +206,8 @@ export default function Home() {
     if (!isClient) return;
     
     fetchWeeklyMenuData();
+    
+    // 클라이언트에서만 시간 기반 섹션 결정
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
@@ -239,8 +240,6 @@ export default function Home() {
   
   // 날짜가 변경될 때마다 선택 상태 초기화
   useEffect(() => {
-    console.log('선택된 날짜:', toYYYYMMDD(selectedDate));
-    console.log('선택된 날짜의 메뉴:', selectedDateMenu);
     setSelectedEvalMenuId(null);
     setSelectedPreVoteMenuType(null);
     setSelectedEvalMenu(null);
@@ -322,7 +321,6 @@ export default function Home() {
         setSelectedPreVoteMenuType(null);
       });
     } catch (error) {
-      console.error("사전 투표 제출 실패:", error);
       showMessage("사전 투표 제출에 실패했습니다. 다시 시도해주세요.");
     }
   };
@@ -365,7 +363,6 @@ export default function Home() {
       setSubmissionSuccess(true);
       document.body.style.overflow = 'hidden';
     } catch (error) {
-      console.error("평가 제출 실패:", error);
       showMessage("평가 제출에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
@@ -473,7 +470,7 @@ export default function Home() {
 
       <div className={`min-h-screen transition-all duration-500 ${currentActiveSection === 'preVote' ? 'section-gradient-blue' : 'section-gradient-sunset'}`}>
         <div className="container mx-auto px-4 py-12 md:py-20">
-          <DateNavigator selectedDate={selectedDate} setSelectedDate={setSelectedDate} weeklyMenus={weeklyMenus} />
+          <DateNavigator selectedDate={selectedDate} setSelectedDate={setSelectedDate} weeklyMenus={weeklyMenus} isClient={isClient} />
 
           {!isClient && <div className="text-center py-20 text-xl text-white">페이지를 불러오는 중입니다...</div>}
           {isClient && isLoading && <div className="text-center py-20 text-xl text-white">메뉴 정보를 불러오는 중입니다...</div>}

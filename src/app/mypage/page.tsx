@@ -57,7 +57,6 @@ export default function MypagePage() {
       const response = await getFriends();
       setFriendsList(response.data.friends);
     } catch (error) {
-      console.error("친구 목록을 불러오는 데 실패했습니다:", error);
       showMessage("친구 목록을 불러오는 데 실패했습니다.");
     }
   }, [isAuthenticated, user, showMessage]);
@@ -81,7 +80,6 @@ export default function MypagePage() {
       showMessage("프로필이 성공적으로 업데이트되었습니다!");
       setIsEditingProfile(false);
     } catch (error) {
-      console.error("프로필 업데이트 실패:", error);
       showMessage("프로필 업데이트에 실패했습니다.");
     }
   };
@@ -92,7 +90,6 @@ export default function MypagePage() {
       showMessage("로그아웃되었습니다.");
       router.push('/login');
     } catch (error) {
-      console.error("로그아웃 실패:", error);
       showMessage("로그아웃에 실패했습니다.");
     }
   };
@@ -118,7 +115,6 @@ export default function MypagePage() {
       setFriendNameInput('');
       loadFriendList();
     } catch (error: any) {
-      console.error("친구 추가 실패:", error);
       const errorMessage = error.response?.data?.message || "친구 추가에 실패했습니다.";
       showMessage(errorMessage);
     }
@@ -134,7 +130,6 @@ export default function MypagePage() {
       showMessage("친구가 삭제되었습니다.");
       loadFriendList();
     } catch (error: any) {
-      console.error("친구 삭제 실패:", error);
       const errorMessage = error.response?.data?.message || "친구 삭제에 실패했습니다.";
       showMessage(errorMessage);
     }

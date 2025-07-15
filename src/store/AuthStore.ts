@@ -176,8 +176,8 @@ export const useAuthStore = create<AuthStoreState>()(
                     isInitializing: false,
                     socialLoginTempData: null, // 로그아웃 시 임시 데이터 초기화
                 });
-                api.post('/account/logout').catch((error) => {
-                    console.error('Logout API call failed:', error);
+                api.post('/account/logout').catch(() => {
+                    // 로그아웃 API 실패 시 무시
                 });
             },
 
@@ -255,12 +255,10 @@ export const useAuthStore = create<AuthStoreState>()(
                                 });
                                 await get().fetchUserInfo(); // 리프레시 후 사용자 정보 조회
                             } catch (refreshError) {
-                                console.error('Token refresh failed:', refreshError);
                                 get().logout(); // 리프레시 실패 시 로그아웃 처리
                             }
                         }
                     } catch (error) {
-                        console.error('Token decoding or validation error during initializeAuth:', error);
                         get().logout(); // 토큰 디코딩/유효성 검사 실패 시 로그아웃 처리
                     }
                 } else {
@@ -308,7 +306,6 @@ export const useAuthStore = create<AuthStoreState>()(
                         socialLoginTempData: null, // 사용자 정보 가져오기 성공하면 임시 데이터 초기화
                     });
                 } catch (error) {
-                    console.error('Failed to fetch user info:', error);
                     set({ isLoading: false });
                     // 유저 정보 조회 실패 시 (예: 토큰은 있지만 유저 정보가 DB에 없는 신규 유저)
                     // 이 시점에서 socialLoginTempData가 남아있다면 mypage/page.tsx에서 회원가입 폼을 띄울 것임.
@@ -333,7 +330,6 @@ export const useAuthStore = create<AuthStoreState>()(
                         get().fetchUserInfo();
                     }
                 } catch (error) {
-                    console.error('Failed to update user info:', error);
                     set({ isLoading: false });
                     throw error; // 에러를 호출자에게 전파
                 }
@@ -362,7 +358,6 @@ export const useAuthStore = create<AuthStoreState>()(
                     // 토큰 저장 후 최신 사용자 정보를 가져옴
                     await get().fetchUserInfo();
                 } catch (error) {
-                    console.error('회원가입에 실패했습니다:', error);
                     get().logout(); // 실패 시 모든 인증 관련 상태를 초기화
                     throw error; // 에러를 상위로 전파하여 UI에서 처리하도록 함
                 } finally {

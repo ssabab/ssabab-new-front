@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { checkEvaluationStatus, checkPreVoteStatus, submitPreVote, SubmitPreVotePayload } from '@/api/ReviewApi';
+import { Menu, toYYYYMMDD, useMenuStore } from '@/store/MenuStore';
 import { useRouter } from 'next/navigation';
-import { useMenuStore, Menu, toYYYYMMDD } from '@/store/MenuStore';
-import { submitPreVote, SubmitPreVotePayload, checkPreVoteStatus, checkEvaluationStatus } from '@/api/ReviewApi';
+import React, { useCallback, useEffect, useState } from 'react';
 
 const getCookieValue = (name: string): string | null => {
   if (typeof document === 'undefined') {
@@ -54,7 +54,8 @@ const MenuCard: React.FC<{
   isSelected: boolean;
   onSelect: () => void;
   className?: string;
-}> = ({ menu, title, isSelected, onSelect, className = '' }) => (
+}> = ({ menu, title, isSelected, onSelect, className = ''}) => {
+  return (
   <div
     className={`menu-card bg-white text-gray-800 rounded-lg shadow-xl p-6 transform hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col items-center ${isSelected ? 'selected' : ''} ${className}`}
     onClick={onSelect}
@@ -69,7 +70,8 @@ const MenuCard: React.FC<{
       ))}
     </ul>
   </div>
-);
+  )
+}
 
 // --- 메뉴 없음 카드 ---
 const NoMenuCard = () => (
@@ -202,7 +204,7 @@ export default function ReviewPage() {
       });
     } catch (error) {
       console.error("사전 투표 제출 실패:", error);
-      showMessage("사전 투표 제출에 실패했습니다. 다시 시도해주세요.");
+      showMessage("사전 투표 제출에 실패했습니다. 로그인 후 다시 시도해주세요.");
     }
   };
 
@@ -213,11 +215,9 @@ export default function ReviewPage() {
       showMessage("먼저 평가할 메뉴를 선택해주세요!");
     }
   };
-
   return (
     <>
       <style jsx>{`
-        .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
         .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
         .menu-card.selected { border: 4px solid #FF8C42; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
         #preVoteSection .menu-card.selected { border-color: #347BBF; }

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getMenuByDate, getTodayDateString, MenuResponse } from '../api/MainApi';
-import FriendsReviewList from '@/component/home/FriendReview'
-import ReviewVotePage from '@/component/home/ReviewVote'
+import FriendsReviewList from '@/component/home/FriendReview';
+import ReviewVotePage from '@/component/home/ReviewVote';
 import MenuReviewCount from '@/component/home/TotalReview';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { getMenuByDate, getTodayDateString, MenuResponse } from '../api/MainApi';
 
 // 쿠키 관련 유틸리티 함수
 const setCookie = (name: string, value: string, days: number = 7) => {

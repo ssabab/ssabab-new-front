@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import { getWeeklyMenu } from '@/api/ReviewApi';
+import { create } from 'zustand';
 
 // --- 타입 정의 ---
 
@@ -63,6 +63,13 @@ interface WeeklyMenuState {
   fetchWeeklyMenu: () => Promise<void>;
   selectDate: (date: Date) => void;
 }
+
+// OCR 스토어
+interface OCRStore { textLines: string[]; setLines(lines: string[]): void }
+export const useOCRStore = create<OCRStore>(set => ({
+  textLines: [],
+  setLines: (lines) => set({ textLines: lines })
+}))
 
 // --- Zustand 스토어 생성 ---
 

@@ -12,6 +12,11 @@ export interface Menu {
   foods: Food[];
 }
 
+export type FoodInput = Omit<Food, 'foodId'>;
+export interface MenuInput {
+  foods: FoodInput[];
+}
+
 export type MenuResponse = Menu[];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';

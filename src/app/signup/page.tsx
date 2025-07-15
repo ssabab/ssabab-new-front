@@ -1,10 +1,10 @@
 // src/app/signup/page.tsx
 'use client';
 
-import { Suspense, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/store/AuthStore';
 import { setCookie } from '@/api/MypageApi'; // setCookie만 명시적으로 사용
+import { useAuthStore } from '@/store/AuthStore';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
 
 function SignupHandler() {
     const router = useRouter();

@@ -1,4 +1,4 @@
-// app/review/[foodId]/page.tsx
+/* // app/review/[foodId]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -234,3 +234,4 @@ export default function DetailedReviewPage() {
     </div>
   );
 }
+*/

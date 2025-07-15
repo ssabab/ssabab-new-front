@@ -349,7 +349,7 @@ export default function AnalysisPage() {
         }
       `}</style>
 
-      <div className="section-gradient-yellow">
+      <div className="min-h-screen section-gradient-yellow">
         {/* Custom Message Box */}
         <div id="messageBoxOverlay" className={`message-box-overlay ${messageBoxVisible ? 'visible' : ''}`} onClick={hideMessage}>
           <div className="message-box-content">

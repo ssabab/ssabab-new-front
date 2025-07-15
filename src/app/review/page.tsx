@@ -1,4 +1,4 @@
-'use client';
+/* 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -244,52 +244,68 @@ export default function ReviewPage() {
         </div>
       )}
 
-        {isLoading && <div className="text-center py-20 text-xl">메뉴 정보를 불러오는 중입니다...</div>}
-        {error && <div className="text-center py-20 text-red-500">{error}</div>}
-        
-        {!isLoading && !error && activeSection === 'preVote' && (
-          <div id="preVoteSection" className="py-16 md:py-24 px-4 section-gradient-blue text-white text-center">
-            <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
-              <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">오늘의 메뉴를 선택하세요!</h1>
-              <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">다양한 맛과 풍미를 자랑하는 오늘의 특별한 메뉴 중 당신의 선택은?</p>
-              <DateNavigator />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center items-start max-w-4xl mx-auto w-full">
-                {selectedDateMenu?.menu1 && (
-                  <MenuCard menu={selectedDateMenu.menu1} title="오늘의 메뉴 1" isSelected={selectedPreVoteMenuType === 'menu1'} onSelect={() => handlePreVoteSelect('menu1')} />
-                )}
-                {selectedDateMenu?.menu2 && (
-                  <MenuCard menu={selectedDateMenu.menu2} title="오늘의 메뉴 2" isSelected={selectedPreVoteMenuType === 'menu2'} onSelect={() => handlePreVoteSelect('menu2')} />
-                )}
-                {!selectedDateMenu?.menu1 && !selectedDateMenu?.menu2 && <NoMenuCard />}
-              </div>
-              <div className="mt-12">
-                {selectedPreVoteMenuType && isToday && <button onClick={handlePreVoteSubmit} className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">사전 투표 제출하기</button>}
-              </div>
-            </div>
-          </div>
-        )}
+      <div className={`transition-all duration-500 ${activeSection === 'preVote' ? 'section-gradient-blue' : 'section-gradient-sunset'}`}>
+        <main className="container mx-auto px-4 py-12 md:py-20">
+          <DateNavigator />
 
-        {!isLoading && !error && activeSection === 'evaluation' && (
-          <div id="evaluationSection" className="py-16 md:py-24 px-4 section-gradient-sunset text-white text-center">
-            <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
-              <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">오늘의 메뉴를 평가해주세요!</h1>
-              <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto">맛있는 식사를 하셨나요? 오늘 드신 메뉴에 대한 소중한 의견을 남겨주세요.</p>
-              <DateNavigator />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center items-start max-w-4xl mx-auto w-full">
-                {selectedDateMenu?.menu1 && (
-                  <MenuCard menu={selectedDateMenu.menu1} title="오늘의 메뉴 1" isSelected={selectedEvalMenuId === selectedDateMenu.menu1.menuId} onSelect={() => handleEvalSelect(selectedDateMenu.menu1.menuId)} />
-                )}
-                {selectedDateMenu?.menu2 && (
-                  <MenuCard menu={selectedDateMenu.menu2} title="오늘의 메뉴 2" isSelected={selectedEvalMenuId === selectedDateMenu.menu2.menuId} onSelect={() => handleEvalSelect(selectedDateMenu.menu2.menuId)} />
-                )}
-                {!selectedDateMenu?.menu1 && !selectedDateMenu?.menu2 && <NoMenuCard />}
+          {isLoading && <div className="text-center py-20 text-xl">메뉴 정보를 불러오는 중입니다...</div>}
+          {error && <div className="text-center py-20 text-red-500">{error}</div>}
+          
+          {!isLoading && !error && activeSection === 'preVote' && (
+            <section id="preVoteSection">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-white text-shadow">점심 사전투표</h1>
+              <p className="text-center text-white text-lg mb-10">오전 11시 30분까지 진행됩니다. 가장 기대되는 메뉴에 투표해주세요!</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center items-start max-w-4xl mx-auto">
+                {selectedDateMenu?.menu1
+                  ? <MenuCard menu={selectedDateMenu.menu1} title="오늘의 메뉴 1" isSelected={selectedPreVoteMenuType === 'menu1'} onSelect={() => handlePreVoteSelect('menu1')} />
+                  : <NoMenuCard />
+                }
+                {selectedDateMenu?.menu2
+                  ? <MenuCard menu={selectedDateMenu.menu2} title="오늘의 메뉴 2" isSelected={selectedPreVoteMenuType === 'menu2'} onSelect={() => handlePreVoteSelect('menu2')} />
+                  : <NoMenuCard />
+                }
               </div>
-              <div className="mt-12">
-                {selectedEvalMenuId && isToday && <button onClick={handleGoToEvaluate} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-colors duration-300 text-xl">평가하러 가기</button>}
+
+              {selectedPreVoteMenuType && (
+                <div className="mt-10 text-center">
+                    <button onClick={handlePreVoteSubmit} className="bg-white text-blue-600 font-bold py-3 px-10 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 active:scale-95 text-lg">
+                        투표 완료하기
+                    </button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {!isLoading && !error && activeSection === 'evaluation' && (
+             <section id="evaluationSection">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-white text-shadow">점심 식사 평가</h1>
+              <p className="text-center text-white text-lg mb-10">오늘 드신 메뉴를 평가해주세요. 더 좋은 식사를 만드는 데 큰 도움이 됩니다!</p>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center items-start max-w-4xl mx-auto">
+                {selectedDateMenu?.menu1
+                  ? <MenuCard menu={selectedDateMenu.menu1} title="오늘의 메뉴 1" isSelected={selectedEvalMenuId === selectedDateMenu.menu1.menuId} onSelect={() => handleEvalSelect(selectedDateMenu.menu1.menuId)} />
+                  : <NoMenuCard />
+                }
+                {selectedDateMenu?.menu2
+                  ? <MenuCard menu={selectedDateMenu.menu2} title="오늘의 메뉴 2" isSelected={selectedEvalMenuId === selectedDateMenu.menu2.menuId} onSelect={() => handleEvalSelect(selectedDateMenu.menu2.menuId)} />
+                  : <NoMenuCard />
+                }
               </div>
-            </div>
-          </div>
-        )}
+              
+              {selectedEvalMenuId && (
+                <div className="mt-10 text-center">
+                    <button onClick={handleGoToEvaluate} className="bg-white text-red-600 font-bold py-3 px-10 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 active:scale-95 text-lg">
+                        이 메뉴 평가하기
+                    </button>
+                </div>
+              )}
+             </section>
+          )}
+
+        </main>
+      </div>
     </>
   );
 }
+*/

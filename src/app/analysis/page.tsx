@@ -1,19 +1,11 @@
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/AuthStore';
+import { getCookieValue } from '@/api/MypageApi';
 import MonthlyAnalysis from '@/component/analysis/MonthlyAnalysis'; // 월간 분석 컴포넌트 임포트
 import PersonalAnalysis from '@/component/analysis/PersonalAnalysis'; // 개인 분석 컴포넌트 임포트
-
-/**
- * 쿠키에서 특정 키의 값을 가져오는 함수
- * @param key 가져올 쿠키의 키
- * @returns 쿠키 값 또는 undefined
- */
-function getCookieValue(key: string): string | undefined {
-  if (typeof document === 'undefined') return undefined;
-  const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : undefined;
-}
 
 // =================================================================
 // 월간 분석 (Monthly Analysis) 관련 타입
@@ -149,6 +141,9 @@ export interface PersonalAnalysisData {
 
 
 export default function AnalysisPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAuthInitialized, initializeAuth } = useAuthStore();
+  
   // 활성 탭 상태 관리: 'monthly' 또는 'personal'
   const [activeTab, setActiveTab] = useState('monthly');
   // 메시지 박스 상태 관리
@@ -241,14 +236,42 @@ export default function AnalysisPage() {
     }
   }, [BACKEND_API_BASE_URL]);
 
+  // 컴포넌트 마운트 시 인증 상태 초기화
+  useEffect(() => {
+    if (!isAuthInitialized) {
+      initializeAuth();
+    }
+  }, [isAuthInitialized, initializeAuth]);
+
+  // 개인 분석 탭 클릭 시 인증 확인
+  const handleTabChange = (tab: string) => {
+    if (tab === 'personal') {
+      if (!isAuthInitialized) {
+        showMessage('인증 상태를 확인하고 있습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+      if (!isAuthenticated) {
+        showMessage('개인 분석을 보려면 로그인이 필요합니다.');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+        return;
+      }
+    }
+    setActiveTab(tab);
+  };
+
   // 탭 변경 시 데이터 로딩
   useEffect(() => {
     if (activeTab === 'monthly') {
       fetchMonthlyAnalysisData();
-    } else { // activeTab === 'personal'
-      fetchPersonalAnalysisData();
+    } else if (activeTab === 'personal') {
+      // 개인 분석은 인증된 사용자만 접근 가능
+      if (isAuthInitialized && isAuthenticated) {
+        fetchPersonalAnalysisData();
+      }
     }
-  }, [activeTab, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
+  }, [activeTab, isAuthInitialized, isAuthenticated, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
 
 
   return (
@@ -373,7 +396,7 @@ export default function AnalysisPage() {
                 type="button"
                 id="monthlyAnalysisBtn"
                 className={`tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 ${activeTab === 'monthly' ? 'selected' : ''}`}
-                onClick={() => setActiveTab('monthly')}
+                onClick={() => handleTabChange('monthly')}
               >
                 월간 분석
               </button>
@@ -381,7 +404,7 @@ export default function AnalysisPage() {
                 type="button"
                 id="personalAnalysisBtn"
                 className={`tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 ${activeTab === 'personal' ? 'selected' : ''}`}
-                onClick={() => setActiveTab('personal')}
+                onClick={() => handleTabChange('personal')}
               >
                 개인 분석
               </button>

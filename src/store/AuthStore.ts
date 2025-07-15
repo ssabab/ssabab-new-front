@@ -276,23 +276,29 @@ export const useAuthStore = create<AuthStoreState>()(
             },
 
             checkAuthStatus: () => {
-                // initializeAuth가 대부분의 인증 상태 확인을 처리하므로,
-                // 이 함수는 단순히 현재 상태를 반환하거나 최소한의 확인만 수행
                 const currentToken = getCookieValue('accessToken');
-                const isAuthenticatedNow = !!currentToken;
-
-                set({
-                    token: currentToken,
-                    isAuthenticated: isAuthenticatedNow,
-                });
-
-                // initializeAuth에서 이미 fetchUserInfo를 호출하고 있으므로,
-                // 여기서는 추가적으로 호출하지 않아도 됨.
-                // 다만, isAuthInitialized가 true이고 user가 비어있다면 한 번 더 시도할 수 있음.
-                if (isAuthenticatedNow && !get().user && get().isAuthInitialized) {
-                    get().fetchUserInfo().catch(() => {/* handle error if needed */});
+                const state = get();
+                
+                // 토큰이 있지만 AuthStore 상태가 초기화되지 않았다면 초기화 실행
+                if (currentToken && !state.isAuthInitialized) {
+                    get().initializeAuth();
+                    return !!currentToken;
                 }
-                return isAuthenticatedNow;
+                
+                // 토큰과 상태가 일치하지 않는 경우 상태 업데이트
+                if (!!currentToken !== state.isAuthenticated) {
+                    set({
+                        token: currentToken,
+                        isAuthenticated: !!currentToken,
+                    });
+                    
+                    // 토큰이 있지만 사용자 정보가 없는 경우 다시 조회
+                    if (currentToken && !state.user) {
+                        get().fetchUserInfo().catch(() => {});
+                    }
+                }
+
+                return !!currentToken;
             },
 
             // 새로운 액션: 유저 정보 가져오기
@@ -306,11 +312,9 @@ export const useAuthStore = create<AuthStoreState>()(
                         socialLoginTempData: null, // 사용자 정보 가져오기 성공하면 임시 데이터 초기화
                     });
                 } catch (error) {
+                    // 토큰은 있지만 사용자 정보 조회 실패 시 로그아웃 처리
+                    get().logout();
                     set({ isLoading: false });
-                    // 유저 정보 조회 실패 시 (예: 토큰은 있지만 유저 정보가 DB에 없는 신규 유저)
-                    // 이 시점에서 socialLoginTempData가 남아있다면 mypage/page.tsx에서 회원가입 폼을 띄울 것임.
-                    // 사용자 정보를 가져오지 못했으므로 user를 null로 설정하는 것도 고려할 수 있으나,
-                    // 이 경우 mypage/page.tsx에서 socialLoginTempData만으로도 폼을 띄울 수 있도록 유지.
                 }
             },
 

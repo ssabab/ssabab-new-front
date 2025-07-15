@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/AuthStore';
 import { signup, checkUsernameExists, SignupPayload } from '@/api/MypageApi';
 
-export default function SignupPage() {
+// Suspense 내부에서 실행될 실제 회원가입 컴포넌트
+function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isAuthInitialized } = useAuthStore();
@@ -350,5 +351,35 @@ export default function SignupPage() {
         </div>
       </div>
     </>
+  );
+}
+
+// 로딩 폴백 컴포넌트
+function SignupLoading() {
+  return (
+    <>
+      <style jsx global>{`
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; overflow-x: hidden; }
+        .section-gradient-sunset { background: linear-gradient(to right, #FF7E5F, #FEB47B); }
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+      `}</style>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+      
+      <div className="min-h-screen section-gradient-sunset flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-shadow">회원가입 페이지를 불러오는 중...</p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// 메인 컴포넌트 - Suspense로 감싸기
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<SignupLoading />}>
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -118,7 +118,6 @@ function SignupForm() {
         setErrors(prev => ({ ...prev, username: '' }));
       }
     } catch (error) {
-      console.error('사용자명 중복 확인 실패:', error);
       setErrors(prev => ({ ...prev, username: '사용자명 확인 중 오류가 발생했습니다.' }));
     } finally {
       setIsLoading(false);
@@ -163,7 +162,6 @@ function SignupForm() {
       alert('회원가입이 완료되었습니다!');
       router.push('/');
     } catch (error: any) {
-      console.error('회원가입 실패:', error);
       alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);

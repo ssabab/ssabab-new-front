@@ -30,6 +30,7 @@ interface AuthStoreState {
     isLoading: boolean;
     isAuthenticated: boolean;
     isAuthInitialized: boolean;
+    isInitializing: boolean; // 초기화 중 여부를 추가
     // 소셜 로그인 후 임시로 URL에서 받은 사용자 정보 저장 (회원가입 폼 초기화용)
     socialLoginTempData: {
         email?: string;
@@ -134,6 +135,7 @@ export const useAuthStore = create<AuthStoreState>()(
             isLoading: false,
             isAuthenticated: false,
             isAuthInitialized: false,
+            isInitializing: false,
             refreshToken: null,
             socialLoginTempData: null, // 초기값 설정
 
@@ -171,6 +173,7 @@ export const useAuthStore = create<AuthStoreState>()(
                     refreshToken: null,
                     user: null,
                     isAuthenticated: false,
+                    isInitializing: false,
                     socialLoginTempData: null, // 로그아웃 시 임시 데이터 초기화
                 });
                 api.post('/account/logout').catch((error) => {
@@ -183,10 +186,10 @@ export const useAuthStore = create<AuthStoreState>()(
             },
 
             initializeAuth: async () => {
-                // 이미 초기화가 완료되었다면 다시 실행하지 않음
-                if (get().isAuthInitialized) return;
+                // 이미 초기화가 완료되었거나 초기화 중이라면 다시 실행하지 않음
+                if (get().isAuthInitialized || get().isInitializing) return;
 
-                set({ isLoading: true }); // 초기화 시작 시 로딩 상태 설정
+                set({ isLoading: true, isInitializing: true }); // 초기화 시작 시 로딩 상태 설정
 
                 let currentAccessToken = getCookieValue('accessToken');
                 let currentRefreshToken = getCookieValue('refreshToken');
@@ -271,7 +274,7 @@ export const useAuthStore = create<AuthStoreState>()(
                         });
                     }
                 }
-                set({ isAuthInitialized: true, isLoading: false }); // 인증 초기화 완료 및 로딩 해제
+                set({ isAuthInitialized: true, isLoading: false, isInitializing: false }); // 인증 초기화 완료 및 로딩 해제
             },
 
             checkAuthStatus: () => {

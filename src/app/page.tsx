@@ -120,7 +120,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const isToday = isTodayDate(selectedDate);
+  // Hydration 문제 해결을 위한 클라이언트 전용 상태
+  const [isClient, setIsClient] = useState(false);
+  
+  const isToday = isClient ? isTodayDate(selectedDate) : false;
   
   // Get current date's menu from weekly data
   const selectedDateMenu = weeklyMenus.find(dailyMenu => 
@@ -128,9 +131,9 @@ export default function Home() {
   );
   
   // 메뉴가 전혀 없는 날인지 확인 (공휴일과 주말)
-  const isNoMenuDay = isHolidayOrWeekend(selectedDate) || 
+  const isNoMenuDay = isClient && (isHolidayOrWeekend(selectedDate) || 
     !selectedDateMenu || 
-    (!selectedDateMenu.menu1?.foods?.length && !selectedDateMenu.menu2?.foods?.length);
+    (!selectedDateMenu.menu1?.foods?.length && !selectedDateMenu.menu2?.foods?.length));
   
   // 실제 activeSection 결정 (오늘만 가능)
   const currentActiveSection = isToday ? activeSection : null;
@@ -163,8 +166,15 @@ export default function Home() {
     }
   };
   
-  // 토큰 처리 로직
+  // 클라이언트 전용 초기화
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // 토큰 처리 로직 (클라이언트 전용)
+  useEffect(() => {
+    if (!isClient) return;
+    
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get('accessToken');
     const refreshToken = params.get('refreshToken');
@@ -174,7 +184,7 @@ export default function Home() {
       console.log('토큰이 쿠키에 저장되었습니다.');
       router.replace('/');
     }
-  }, [router]);
+  }, [router, isClient]);
   
   // Fetch weekly menu data
   const fetchWeeklyMenuData = async () => {
@@ -194,12 +204,14 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (!isClient) return;
+    
     fetchWeeklyMenuData();
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     setActiveSection(currentHour < 11 || (currentHour === 11 && currentMinute < 30) ? 'preVote' : 'evaluation');
-  }, []);
+  }, [isClient]);
   
   const checkVoteStatus = useCallback(async () => {
     if (isToday && selectedDateMenu) {
@@ -244,7 +256,7 @@ export default function Home() {
       return;
     }
     if (!getCookieValue('accessToken')) {
-      showMessage("로그인을 해주세요.", () => router.push('/mypage'));
+      showMessage("로그인을 해주세요.", () => router.push('/login'));
     } else {
       setSelectedPreVoteMenuType(menuType);
     }
@@ -260,7 +272,7 @@ export default function Home() {
       return;
     }
     if (!getCookieValue('accessToken')) {
-      showMessage("로그인을 해주세요.", () => router.push('/mypage'));
+      showMessage("로그인을 해주세요.", () => router.push('/login'));
     } else {
       setSelectedEvalMenuId(menuId);
     }
@@ -463,10 +475,11 @@ export default function Home() {
         <div className="container mx-auto px-4 py-12 md:py-20">
           <DateNavigator selectedDate={selectedDate} setSelectedDate={setSelectedDate} weeklyMenus={weeklyMenus} />
 
-          {isLoading && <div className="text-center py-20 text-xl text-white">메뉴 정보를 불러오는 중입니다...</div>}
-          {error && <div className="text-center py-20 text-red-500">{error}</div>}
+          {!isClient && <div className="text-center py-20 text-xl text-white">페이지를 불러오는 중입니다...</div>}
+          {isClient && isLoading && <div className="text-center py-20 text-xl text-white">메뉴 정보를 불러오는 중입니다...</div>}
+          {isClient && error && <div className="text-center py-20 text-red-500">{error}</div>}
           
-          {!isLoading && !error && isNoMenuDay && (
+          {isClient && !isLoading && !error && isNoMenuDay && (
             <section>
               <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-10 text-white text-shadow">오늘은 싸밥이 없어요!!</h1>
               <div className="flex justify-center">
@@ -479,7 +492,7 @@ export default function Home() {
             </section>
           )}
           
-          {!isLoading && !error && !isNoMenuDay && currentActiveSection === 'preVote' && (
+          {isClient && !isLoading && !error && !isNoMenuDay && currentActiveSection === 'preVote' && (
            <section id="preVoteSection">
              <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-white text-shadow">점심 사전투표</h1>
              <p className="text-center text-white text-lg mb-10">오전 11시 30분까지 진행됩니다. 가장 기대되는 메뉴에 투표해주세요!</p>
@@ -509,7 +522,7 @@ export default function Home() {
            </section>
          )}
 
-          {!isLoading && !error && !isNoMenuDay && currentActiveSection === 'evaluation' && (
+          {isClient && !isLoading && !error && !isNoMenuDay && currentActiveSection === 'evaluation' && (
             <section id="evaluationSection">
              <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-white text-shadow">점심 식사 평가</h1>
              <p className="text-center text-white text-lg mb-10">오늘 드신 메뉴를 평가해주세요. 더 좋은 식사를 만드는 데 큰 도움이 됩니다!</p>
@@ -539,7 +552,7 @@ export default function Home() {
             </section>
          )}
 
-          {!isLoading && !error && !isNoMenuDay && !currentActiveSection && (
+          {isClient && !isLoading && !error && !isNoMenuDay && !currentActiveSection && (
            <section>
              <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-2 text-white text-shadow">선택한 날짜의 메뉴</h1>
              <p className="text-center text-white text-lg mb-10">이 날짜의 메뉴를 확인해보세요. {!isToday && "과거/미래 날짜에서는 투표와 평가가 불가능합니다."}</p>

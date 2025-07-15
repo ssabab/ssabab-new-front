@@ -21,8 +21,20 @@ export function getCookieValue(key: string): string | undefined {
 export function setCookie(name: string, value: string, days = 7) {
   if (typeof document === 'undefined') return;
   const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-  // `SameSite=None; Secure;`는 크로스사이트 요청에 필수
-  document.cookie = `${name}=${value}; Path=/; SameSite=None; Secure; Expires=${expires}`;
+  
+  // 개발 환경 체크 (localhost 또는 HTTP 프로토콜)
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1' ||
+     window.location.protocol === 'http:');
+  
+  if (isLocalhost) {
+    // 로컬 개발 환경: SameSite=Lax로 설정 (Secure 제거)
+    document.cookie = `${name}=${value}; Path=/; SameSite=Lax; Expires=${expires}`;
+  } else {
+    // 운영 환경: SameSite=None; Secure로 설정
+    document.cookie = `${name}=${value}; Path=/; SameSite=None; Secure; Expires=${expires}`;
+  }
 }
 
 /**
@@ -31,7 +43,20 @@ export function setCookie(name: string, value: string, days = 7) {
  */
 export function removeCookie(name: string) {
   if (typeof document === 'undefined') return;
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure;`;
+  
+  // 개발 환경 체크
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1' ||
+     window.location.protocol === 'http:');
+  
+  if (isLocalhost) {
+    // 로컬 개발 환경
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax;`;
+  } else {
+    // 운영 환경
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure;`;
+  }
 }
 
 /**
@@ -172,11 +197,23 @@ export const refreshAccessToken = async (): Promise<{ accessToken: string; refre
   // 리프레시 토큰은 요청 헤더에 자동으로 추가되므로, 바디에는 포함하지 않음 (백엔드 설계에 따라 다름)
   const { data } = await MypageApi.post('/account/refresh', {});
 
-  // 새 토큰을 쿠키에 저장
-  setCookie('accessToken', data.accessToken); // 백엔드 응답에 따라 key 조정 필요 (data.token.accessToken 또는 data.accessToken)
-  setCookie('refreshToken', data.refreshToken); // 백엔드 응답에 따라 key 조정 필요
+  // 응답에서 토큰들을 확인하고 저장
+  if (!data.accessToken) {
+    throw new Error('Access token not received from server');
+  }
 
-  return data; // 새로운 accessToken과 refreshToken을 포함한 객체 반환
+  // 새 accessToken은 항상 저장
+  setCookie('accessToken', data.accessToken);
+  
+  // refreshToken이 응답에 있는 경우에만 저장 (백엔드에서 새로 발급한 경우)
+  if (data.refreshToken) {
+    setCookie('refreshToken', data.refreshToken);
+  }
+
+  return {
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken || refreshToken // 새로운 것이 없으면 기존 것 반환
+  };
 };
 
 /**

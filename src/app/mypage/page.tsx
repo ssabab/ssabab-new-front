@@ -1,46 +1,11 @@
-// app/mypage/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Head from 'next/head';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/AuthStore';
-import {
-  addFriend,
-  deleteFriend,
-  getFriends,
-  UserInfoData,
-  redirectToGoogleLogin,
-  SignupPayload,
-  checkUsernameExists,
-} from '@/api/MypageApi';
+import { getFriends, addFriend, deleteFriend, UserInfoData } from '@/api/MypageApi';
 
-// =================================================================
-// 💡 1. 타입 정의를 이 파일에 직접 추가합니다.
-// =================================================================
-
-/**
- * Axios 에러 발생 시 반환되는 응답 데이터의 타입
- */
-interface ApiErrorData {
-  error?: string;
-  message: string;
-}
-
-/**
- * Axios 에러 객체의 타입 (response.data를 포함)
- */
-interface AxiosApiError extends Error {
-  response?: {
-    data: ApiErrorData;
-  };
-}
-
-
-// =================================================================
-// MyPage 컴포넌트
-// =================================================================
-
-export default function MyPage() {
+export default function MypagePage() {
   const {
     user,
     isAuthenticated,
@@ -48,10 +13,9 @@ export default function MyPage() {
     isAuthInitialized,
     logout,
     updateUserInformation,
-    initializeAuth,
-    socialLoginTempData,
-    signup,
   } = useAuthStore();
+
+  const router = useRouter();
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -60,19 +24,6 @@ export default function MyPage() {
   const [messageBoxVisible, setMessageBoxVisible] = useState(false);
   const [messageBoxText, setMessageBoxText] = useState('');
   const [friendsList, setFriendsList] = useState<UserInfoData[]>([]);
-  const [showSignupForm, setShowSignupForm] = useState(false);
-  const [signupData, setSignupData] = useState<Partial<SignupPayload>>({
-    username: '',
-    ssafyYear: '',
-    classNum: '',
-    gender: undefined,
-    birthDate: '',
-    ssafyRegion: '대전',
-  });
-
-  const [usernameCheckStatus, setUsernameCheckStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
-  const [usernameFeedbackMessage, setUsernameFeedbackMessage] = useState<string>('');
-  const usernameCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showMessage = useCallback((message: string) => {
     setMessageBoxText(message);
@@ -86,51 +37,19 @@ export default function MyPage() {
     document.body.style.overflow = 'auto';
   }, []);
 
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+  // 비로그인 사용자 리다이렉트 제거 - 헤더에서 로그인 버튼으로 처리
 
   useEffect(() => {
-    if (!isAuthInitialized) return;
+    if (!isAuthInitialized || !isAuthenticated) return;
 
-    if (isAuthenticated && user) {
+    if (user) {
       setProfileName(user.username || '');
       setProfileClass(user.classNum || '');
-
-      if (!user.ssafyYear || !user.classNum || !user.gender || !user.birthDate) {
-        setShowSignupForm(true);
-        setSignupData(prev => ({
-          ...prev,
-          username: user.username || socialLoginTempData?.name || socialLoginTempData?.username || '',
-          ssafyYear: user.ssafyYear || '',
-          classNum: user.classNum || '',
-          gender: (user.gender as 'M' | 'F') || undefined,
-          birthDate: user.birthDate || '',
-          ssafyRegion: user.ssafyRegion || '대전',
-        }));
-      } else {
-        setShowSignupForm(false);
-      }
-    } else if (socialLoginTempData && !isAuthenticated) {
-      setShowSignupForm(true);
-      setSignupData({
-        username: socialLoginTempData.name || socialLoginTempData.username || '',
-        ssafyYear: '',
-        classNum: '',
-        gender: undefined,
-        birthDate: '',
-        ssafyRegion: socialLoginTempData.ssafyRegion || '대전',
-      });
-    } else {
-      setProfileName('');
-      setProfileClass('');
-      setFriendsList([]);
-      setShowSignupForm(false);
     }
-  }, [user, socialLoginTempData, isAuthenticated, isAuthInitialized]);
+  }, [user, isAuthenticated, isAuthInitialized]);
 
   const loadFriendList = useCallback(async () => {
-    if (!isAuthenticated || !user || !user.ssafyYear || !user.classNum || !user.gender || !user.birthDate) {
+    if (!isAuthenticated || !user) {
       setFriendsList([]);
       return;
     }
@@ -144,28 +63,10 @@ export default function MyPage() {
   }, [isAuthenticated, user, showMessage]);
 
   useEffect(() => {
-    if (isAuthInitialized) {
-      if (isAuthenticated) {
-        loadFriendList();
-      } else {
-        setFriendsList([]);
-      }
+    if (isAuthInitialized && isAuthenticated) {
+      loadFriendList();
     }
   }, [isAuthenticated, isAuthInitialized, loadFriendList]);
-
-  const handleGoogleSignIn = () => {
-    redirectToGoogleLogin();
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      showMessage("로그아웃되었습니다.");
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-      showMessage("로그아웃에 실패했습니다.");
-    }
-  };
 
   const handleUpdateProfile = async () => {
     if (!user) {
@@ -179,10 +80,20 @@ export default function MyPage() {
       });
       showMessage("프로필이 성공적으로 업데이트되었습니다!");
       setIsEditingProfile(false);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("프로필 업데이트 실패:", error);
       showMessage("프로필 업데이트에 실패했습니다.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      showMessage("로그아웃되었습니다.");
+      router.push('/login');
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      showMessage("로그아웃에 실패했습니다.");
     }
   };
 
@@ -200,564 +111,377 @@ export default function MyPage() {
       showMessage("자신을 친구로 추가할 수 없습니다.");
       return;
     }
+
     try {
       await addFriend(trimmedFriendName);
-      showMessage(`'${trimmedFriendName}'님을 친구로 추가했습니다!`);
+      showMessage(`${trimmedFriendName}님을 친구로 추가했습니다!`);
       setFriendNameInput('');
       loadFriendList();
-    } catch (error) {
+    } catch (error: any) {
       console.error("친구 추가 실패:", error);
-      // 💡 2. any 대신 구체적인 에러 타입을 사용합니다.
-      const apiError = error as AxiosApiError;
-      if (apiError.response && apiError.response.data && apiError.response.data.message) {
-        showMessage(`친구 추가 실패: ${apiError.response.data.message}`);
-      } else {
-        showMessage("친구 추가에 실패했습니다.");
-      }
+      const errorMessage = error.response?.data?.message || "친구 추가에 실패했습니다.";
+      showMessage(errorMessage);
     }
   };
 
-  const handleDeleteFriend = async (friendIdToDelete: number) => {
+  const handleDeleteFriend = async (friendId: number) => {
     if (!isAuthenticated) {
       showMessage("로그인이 필요합니다.");
       return;
     }
     try {
-      await deleteFriend(friendIdToDelete);
+      await deleteFriend(friendId);
       showMessage("친구가 삭제되었습니다.");
       loadFriendList();
-    } catch (error) {
+    } catch (error: any) {
       console.error("친구 삭제 실패:", error);
-      showMessage("친구 삭제에 실패했습니다.");
+      const errorMessage = error.response?.data?.message || "친구 삭제에 실패했습니다.";
+      showMessage(errorMessage);
     }
   };
 
-  const handleUsernameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSignupData(prev => ({ ...prev, username: value }));
-
-    if (usernameCheckTimeoutRef.current) {
-      clearTimeout(usernameCheckTimeoutRef.current);
-    }
-
-    if (value.trim() === '') {
-      setUsernameCheckStatus('idle');
-      setUsernameFeedbackMessage('');
-      return;
-    }
-
-    setUsernameCheckStatus('checking');
-    setUsernameFeedbackMessage('중복 확인 중...');
-    usernameCheckTimeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await checkUsernameExists(value.trim());
-        if (response.data === true) {
-          setUsernameCheckStatus('taken');
-          setUsernameFeedbackMessage('이미 사용 중인 이름입니다.');
-        } else {
-          setUsernameCheckStatus('available');
-          setUsernameFeedbackMessage('사용 가능한 이름입니다.');
-        }
-      } catch (error) {
-        console.error("이름 중복 확인 실패:", error);
-        setUsernameCheckStatus('error');
-        setUsernameFeedbackMessage('이름 중복 확인 중 오류가 발생했습니다.');
-      }
-    }, 500);
-  }, []);
-
-  const handleSignupSubmit = async () => {
-    if (!user && !socialLoginTempData) {
-      showMessage("회원가입에 필요한 정보가 부족합니다. 다시 로그인해주세요.");
-      return;
-    }
-
-    if (!signupData.username || !signupData.ssafyYear || !signupData.classNum || !signupData.gender || !signupData.birthDate) {
-      showMessage("모든 필수 정보를 입력해주세요.");
-      return;
-    }
-
-    if (usernameCheckStatus === 'checking') {
-      showMessage("이름 중복 확인 중입니다. 잠시 기다려주세요.");
-      return;
-    }
-    if (usernameCheckStatus === 'taken') {
-      showMessage("이미 사용 중인 이름입니다. 다른 이름을 선택해주세요.");
-      return;
-    }
-    if (usernameCheckStatus === 'error') {
-      showMessage("이름 중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.");
-      return;
-    }
-    if (usernameCheckStatus === 'idle') {
-      if (!signupData.username.trim()) {
-        showMessage("서비스에서 사용할 이름을 입력해주세요.");
-        return;
-      }
-      showMessage("이름 중복 확인이 필요합니다. 잠시 기다려주세요.");
-      return;
-    }
-
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-    if (!datePattern.test(signupData.birthDate)) {
-      showMessage("생년월일은 YYYY-MM-DD 형식으로 입력해주세요.");
-      return;
-    }
-    const [yearStr] = signupData.birthDate.split('-');
-    const year = parseInt(yearStr);
-    const currentYear = new Date().getFullYear();
-    if (year < 1900 || year > currentYear) {
-      showMessage(`생년월일의 연도는 1900년에서 ${currentYear}년 사이로 입력해주세요.`);
-      return;
-    }
-
-    const sourceData = user || socialLoginTempData;
-    if (!sourceData) {
-      showMessage("회원가입에 필요한 기본 사용자 정보가 없습니다.");
-      return;
-    }
-
-    const fullSignupPayload: SignupPayload = {
-      email: sourceData.email || '',
-      provider: sourceData.provider || 'google',
-      providerId: sourceData.providerId || '',
-      profileImage: sourceData.profileImage || '',
-      name: sourceData.name || signupData.username || '',
-      username: signupData.username,
-      ssafyYear: signupData.ssafyYear,
-      classNum: signupData.classNum,
-      gender: signupData.gender as 'M' | 'F',
-      birthDate: signupData.birthDate,
-      ssafyRegion: signupData.ssafyRegion || '대전',
-    };
-
-    try {
-      console.log("Sending Signup Payload:", fullSignupPayload);
-      await signup(fullSignupPayload);
-      showMessage("회원가입이 완료되었습니다! 마이페이지를 이용할 수 있습니다.");
-    } catch (error) { // 💡 3. any 대신 구체적인 에러 타입을 사용합니다.
-      console.error("회원가입 실패:", error);
-      const apiError = error as AxiosApiError;
-      if (apiError.response && apiError.response.data && apiError.response.data.message) {
-        showMessage(`회원가입 실패: ${apiError.response.data.message}`);
-      } else if (apiError.message === "Network Error") {
-        showMessage("회원가입에 실패했습니다: 서버 연결 또는 네트워크 오류. CORS 설정을 확인해주세요.");
-      } else {
-        showMessage(`회원가입 실패: ${apiError.message || '알 수 없는 오류가 발생했습니다.'}`);
-      }
-    }
-  };
-
-  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9-]/g, '');
-    setSignupData(prev => ({ ...prev, birthDate: rawValue }));
-  };
-
-  // ... 이하 모든 JSX 렌더링 코드는 기존과 동일합니다.
-  if (!isAuthInitialized) {
+  // 로딩 중이거나 초기화되지 않은 경우
+  if (!isAuthInitialized || isLoading) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center bg-gray-100">
-        <p className="text-xl font-semibold text-gray-700">로그인 상태 확인 중...</p>
-        <div className="mt-4 animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
+      <>
+        <style jsx global>{`
+          body { font-family: 'Inter', sans-serif; background-color: #f9fafb; overflow-x: hidden; }
+          .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
+          .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        `}</style>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+        
+        <div className="min-h-screen section-gradient-blue flex items-center justify-center px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-white text-shadow">로딩 중...</p>
+          </div>
+        </div>
+      </>
     );
   }
 
-  let mainContent;
-
-  if (!isAuthenticated && !socialLoginTempData && !showSignupForm) {
-    mainContent = (
-      <div id="notLoggedIn" className="text-center space-y-6">
-        <p className="text-lg text-white text-shadow">로그인이 필요합니다.</p>
-        <button
-          id="googleSignInBtn"
-          onClick={handleGoogleSignIn}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl flex items-center justify-center"
-        >
-          Google로 로그인
-        </button>
-      </div>
-    );
-  } else if (showSignupForm) {
-    mainContent = (
-      <div className="profile-card text-center space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">회원가입</h2>
-        <p className="text-gray-600 mb-6">서비스 이용을 위해 추가 정보를 입력해주세요.</p>
-
-        <div className="space-y-3 mx-auto w-full">
-          <div>
-            <label htmlFor="signupName" className="block text-gray-800 text-sm font-medium text-left mb-1">서비스에서 사용할 이름</label>
-            <input
-              type="text"
-              id="signupName"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-800"
-              placeholder="이름"
-              value={signupData.username}
-              onChange={handleUsernameChange}
-            />
-            {usernameFeedbackMessage && (
-              <p className={`text-sm text-left mt-1 ${
-                usernameCheckStatus === 'available' ? 'text-green-600' :
-                usernameCheckStatus === 'taken' || usernameCheckStatus === 'error' ? 'text-red-600' : 'text-gray-500'
-              }`}>
-                {usernameFeedbackMessage}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="ssafyYear" className="block text-gray-800 text-sm font-medium text-left mb-1">기수</label>
-            <select
-              id="ssafyYear"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-800"
-              value={signupData.ssafyYear}
-              onChange={(e) => setSignupData(prev => ({ ...prev, ssafyYear: e.target.value }))}
-            >
-              <option value="">선택</option>
-              <option value="13">13기</option>
-              <option value="14">14기</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="classNum" className="block text-gray-800 text-sm font-medium text-left mb-1">반</label>
-            <select
-              id="classNum"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-800"
-              value={signupData.classNum}
-              onChange={(e) => setSignupData(prev => ({ ...prev, classNum: e.target.value }))}
-            >
-              <option value="">선택</option>
-              <option value="1">1반</option>
-              <option value="2">2반</option>
-              <option value="3">3반</option>
-              <option value="4">4반</option>
-              <option value="5">5반</option>
-              <option value="6">6반</option>
-            </select>
-          </div>
-
-          <div className="text-left">
-            <label className="block text-gray-800 text-sm font-medium text-left mb-1">성별</label>
-            <div className="flex space-x-6 text-gray-800">
-              <label className="flex items-center text-gray-800">
-                <input
-                  type="radio"
-                  name="gender"
-                  value="M"
-                  checked={signupData.gender === 'M'}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, gender: e.target.value as 'M' | 'F' }))}
-                  className="mr-2"
-                /> 남
-              </label>
-              <label className="flex items-center text-gray-800">
-                <input
-                  type="radio"
-                  name="gender"
-                  value="F"
-                  checked={signupData.gender === 'F'}
-                  onChange={(e) => setSignupData(prev => ({ ...prev, gender: e.target.value as 'M' | 'F' }))}
-                  className="mr-2"
-                /> 여
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="birthDate" className="block text-gray-800 text-sm font-medium text-left mb-1">생년월일</label>
-            <input
-              type="text"
-              id="birthDate"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-800"
-              placeholder="YYYY-MM-DD"
-              pattern="\d{4}-\d{2}-\d{2}"
-              maxLength={10}
-              value={signupData.birthDate}
-              onChange={handleBirthDateChange}
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={handleSignupSubmit}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg mt-6"
-        >
-          회원가입 완료
-        </button>
-      </div>
-    );
-  } else if (isAuthenticated && !showSignupForm) {
-    mainContent = (
-      <div id="loggedIn" className="space-y-10 w-full">
-        <div className="profile-card text-center space-y-4">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">내 프로필</h2>
-
-          <img
-            id="profilePic"
-            src={user?.profileImage || "https://placehold.co/120x120/cccccc/333333?text=Profile"}
-            alt="프로필 사진"
-            className="profile-pic mx-auto"
-          />
-
-          <div className="space-y-3">
-            <div className="mx-auto">
-              <label htmlFor="profileName" className="block text-gray-800 text-sm font-medium">이름</label>
-              <input
-                type="text"
-                id="profileName"
-                className="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center text-gray-800"
-                disabled={!isEditingProfile}
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-              />
-            </div>
-            <div className="mx-auto">
-              <label htmlFor="profileClass" className="block text-gray-800 text-sm font-medium">반</label>
-              <input
-                type="text"
-                id="profileClass"
-                className="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-center text-gray-800"
-                disabled={!isEditingProfile}
-                value={profileClass}
-                onChange={(e) => setProfileClass(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div id="profileActions" className="flex justify-center space-x-4 mt-4">
-            {!isEditingProfile ? (
-              <button id="editProfileBtn" onClick={() => setIsEditingProfile(true)} className="edit-button">
-                수정
-              </button>
-            ) : (
-              <>
-                <button id="saveProfileBtn" onClick={handleUpdateProfile} className="save-button">
-                  저장
-                </button>
-                <button
-                  id="cancelEditBtn"
-                  onClick={() => {
-                    setIsEditingProfile(false);
-                    if (user) {
-                      setProfileName(user.username || '');
-                      setProfileClass(user.classNum || '');
-                    }
-                  }}
-                  className="cancel-button"
-                >
-                  취소
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="friends-card space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800 text-center">친구 목록</h2>
-
-          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
-            <input
-              type="text"
-              id="friendNameInput"
-              placeholder="추가할 친구 이름"
-              className="flex-grow p-3 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg text-gray-800"
-              value={friendNameInput}
-              onChange={(e) => setFriendNameInput(e.target.value)}
-            />
-            <button
-              id="addFriendBtn"
-              onClick={handleAddFriend}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg"
-            >
-              친구 추가
-            </button>
-          </div>
-
-          <div id="friendList" className="space-y-3">
-            {friendsList.length === 0 ? (
-              <p className="text-gray-500 text-center" id="noFriendsMessage">친구를 추가해보세요!</p>
-            ) : (
-              friendsList.map(friend => (
-                <div key={friend.userId} className="flex justify-between items-center bg-gray-50 p-3 rounded-md shadow-sm border border-gray-200">
-                  <span className="text-lg font-medium text-gray-800">{friend.username}</span>
-                  <button
-                    onClick={() => handleDeleteFriend(friend.userId)}
-                    className="delete-friend-btn text-red-500 hover:text-red-700 transition-colors duration-200"
-                  >
-                    삭제
-                  </button>
+  // 비로그인 사용자를 위한 안내 페이지
+  if (!isAuthenticated) {
+    return (
+      <>
+        <style jsx global>{`
+          body { font-family: 'Inter', sans-serif; background-color: #f9fafb; overflow-x: hidden; }
+          .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
+          .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+          .login-prompt-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+          }
+          .btn-primary {
+            transition: all 0.3s ease-in-out;
+          }
+          .btn-primary:hover {
+            transform: translateY(-2px);
+          }
+        `}</style>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+        
+        <div className="min-h-screen section-gradient-blue py-12 px-4">
+          <div className="max-w-md mx-auto">
+            <div className="login-prompt-card p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
-              ))
-            )}
+                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-2 text-shadow">마이페이지</h1>
+                <p className="text-gray-600 text-lg">프로필 정보와 친구 목록을 확인하려면 로그인이 필요합니다.</p>
+              </div>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => router.push('/login')}
+                  className="btn-primary w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 shadow-lg"
+                >
+                  로그인하기
+                </button>
+                
+                <p className="text-sm text-gray-500">
+                  계정이 없으신가요? Google 로그인 시 자동으로 회원가입됩니다.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="text-center mt-10">
-          <button
-            id="logoutBtn"
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl"
-          >
-            로그아웃
-          </button>
-        </div>
-      </div>
+      </>
     );
-  } else {
-    mainContent = <div className="text-white text-lg">알 수 없는 상태입니다.</div>;
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Head>
-        <title>마이페이지</title>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-      </Head>
-
-      {messageBoxVisible && (
-        <div id="messageBoxOverlay" className="message-box-overlay visible" onClick={hideMessage}>
-          <div className="message-box-content" onClick={(e) => e.stopPropagation()}>
-            <p id="messageBoxText">{messageBoxText}</p>
-            <button onClick={hideMessage} className="message-box-confirm-button">확인</button>
-          </div>
-        </div>
-      )}
-
-      <main className="flex-grow">
-        <div id="mypageContent" className="py-16 md:py-24 px-4 section-gradient-navy-blue text-white text-center">
-          <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">
-              마이페이지
-            </h1>
-            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow">내 정보와 친구들을 관리하세요.</p>
-
-            {isLoading && (
-              <div className="text-white text-lg mb-4">데이터 로딩 중...</div>
-            )}
-
-            {mainContent}
-
-          </div>
-        </div>
-      </main>
-
+    <>
       <style jsx global>{`
-        body {
-          font-family: 'Inter', sans-serif;
-          background-color: #ffffff;
-          overflow-x: hidden;
-          overflow-y: auto;
-        }
-        .section-gradient-navy-blue {
-          background: linear-gradient(to bottom, #AEC6F7, #FFFFFF);
-        }
-        .text-shadow {
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .message-box-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.6);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .message-box-overlay.visible {
-          opacity: 1;
-          visibility: visible;
-        }
-        .message-box-content {
-          background-color: #fff;
-          padding: 2.5rem;
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; overflow-x: hidden; }
+        .section-gradient-blue { background: linear-gradient(to right, #87CEEB, #ADD8E6); }
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        .mypage-card { 
+          background: rgba(255, 255, 255, 0.95); 
+          backdrop-filter: blur(10px);
           border-radius: 1rem;
-          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-          text-align: center;
-          max-width: 400px;
-          width: 90%;
-          transform: scale(0.95);
-          transition: transform 0.3s ease;
-        }
-        .message-box-overlay.visible .message-box-content {
-          transform: scale(1);
-        }
-        .message-box-content p {
-          font-size: 1.25rem;
-          color: #333;
-          margin-bottom: 1.5rem;
-          font-weight: 600;
-        }
-        .message-box-content button {
-          background-color: #4169E1;
-          color: white;
-          padding: 0.75rem 2rem;
-          border: none;
-          border-radius: 0.5rem;
-          cursor: pointer;
-          font-size: 1rem;
-          font-weight: bold;
-          transition: background-color 0.2s ease;
-        }
-        .message-box-content button:hover {
-          background-color: #365EC7;
-        }
-        .profile-card, .friends-card {
-          background-color: #ffffff;
-          border-radius: 0.75rem;
           box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-          padding: 1.5rem;
-          transition: transform 0.3s ease-in-out;
         }
-        .profile-card:hover, .friends-card:hover {
-          transform: translateY(-5px);
+        .btn-primary {
+          transition: all 0.3s ease-in-out;
         }
-        .profile-pic {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 4px solid #4169E1;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        .btn-primary:hover {
+          transform: translateY(-2px);
         }
-        .edit-button {
-          background-color: #4169E1;
-          color: white;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
-          transition: background-color 0.2s ease;
+        .message-box-overlay { 
+          position: fixed; 
+          top: 0; 
+          left: 0; 
+          width: 100%; 
+          height: 100%; 
+          background-color: rgba(0,0,0,0.6); 
+          display: flex; 
+          justify-content: center; 
+          align-items: center; 
+          z-index: 1000; 
+          opacity: 0; 
+          visibility: hidden; 
+          transition: opacity 0.3s ease, visibility 0.3s ease; 
         }
-        .edit-button:hover {
-          background-color: #365EC7;
+        .message-box-overlay.visible { 
+          opacity: 1; 
+          visibility: visible; 
         }
-        .save-button {
-          background-color: #10b981;
-          color: white;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
-          transition: background-color 0.2s ease;
+        .message-box-content { 
+          background-color: #fff; 
+          padding: 2.5rem; 
+          border-radius: 1rem; 
+          box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+          text-align: center; 
+          max-width: 400px; 
+          width: 90%; 
+          transform: scale(0.95); 
+          transition: transform 0.3s ease; 
         }
-        .save-button:hover {
-          background-color: #0c9f6e;
+        .message-box-overlay.visible .message-box-content { 
+          transform: scale(1); 
         }
-        .cancel-button {
-          background-color: #ef4444;
-          color: white;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
-          transition: background-color 0.2s ease;
+        .message-box-content p { 
+          font-size: 1.25rem; 
+          color: #333; 
+          margin-bottom: 1.5rem; 
+          font-weight: 600; 
         }
-        .cancel-button:hover {
-          background-color: #dc2626;
+        .message-box-content button { 
+          background-color: #4CAF50; 
+          color: white; 
+          padding: 0.75rem 2rem; 
+          border: none; 
+          border-radius: 0.5rem; 
+          cursor: pointer; 
+          font-size: 1rem; 
+          font-weight: bold; 
+          transition: background-color 0.2s ease; 
+        }
+        .message-box-content button:hover { 
+          background-color: #45a049; 
         }
       `}</style>
-    </div>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+      
+      <div className="min-h-screen section-gradient-blue py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mypage-card p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2 text-shadow">마이페이지</h1>
+              <p className="text-gray-600 text-lg">프로필 정보와 친구 목록을 관리해보세요</p>
+            </div>
+
+            {/* 프로필 정보 */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">프로필 정보</h2>
+                {!isEditingProfile ? (
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="btn-primary px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
+                  >
+                    수정
+                  </button>
+                ) : (
+                  <div className="space-x-2">
+                    <button
+                      onClick={handleUpdateProfile}
+                      className="btn-primary px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg"
+                    >
+                      저장
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        if (user) {
+                          setProfileName(user.username || '');
+                          setProfileClass(user.classNum || '');
+                        }
+                      }}
+                      className="btn-primary px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 shadow-lg"
+                    >
+                      취소
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="bg-gray-50 rounded-lg p-6 shadow-inner">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">닉네임</label>
+                    {isEditingProfile ? (
+                      <input
+                        type="text"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                    ) : (
+                      <p className="text-lg text-gray-900">{profileName || '정보 없음'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">반</label>
+                    {isEditingProfile ? (
+                      <input
+                        type="text"
+                        value={profileClass}
+                        onChange={(e) => setProfileClass(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                    ) : (
+                      <p className="text-lg text-gray-900">{profileClass || '정보 없음'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
+                    <p className="text-lg text-gray-500">{user?.email || '정보 없음'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">SSAFY 기수</label>
+                    <p className="text-lg text-gray-500">{user?.ssafyYear || '정보 없음'}</p>
+                  </div>
+                </div>
+                {isEditingProfile && (
+                  <p className="text-sm text-gray-500 mt-4">
+                    * 이메일과 SSAFY 기수는 수정할 수 없습니다.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 친구 추가 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">친구 추가</h2>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={friendNameInput}
+                  onChange={(e) => setFriendNameInput(e.target.value)}
+                  placeholder="친구의 닉네임을 입력하세요"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddFriend();
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleAddFriend}
+                  className="btn-primary px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg"
+                >
+                  추가
+                </button>
+              </div>
+            </div>
+
+            {/* 친구 목록 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">친구 목록 ({friendsList.length}명)</h2>
+              {friendsList.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-lg">아직 추가된 친구가 없습니다</p>
+                  <p className="text-gray-400 text-sm mt-2">위에서 친구의 닉네임을 입력하여 친구를 추가해보세요!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {friendsList.map((friend) => (
+                    <div key={friend.userId} className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            {friend.username.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 text-lg">{friend.username}</h3>
+                            <div className="flex items-center space-x-1 mt-1">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {friend.ssafyYear}기
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {friend.classNum}반
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteFriend(friend.userId)}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+                          title="친구 삭제"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <div className="border-t border-gray-100 pt-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">지역</span>
+                          <span className="text-gray-700 font-medium">{friend.ssafyRegion || '대전'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 로그아웃 버튼 */}
+            <div className="text-center">
+              <button
+                onClick={handleLogout}
+                className="btn-primary px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-lg text-lg"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 메시지 박스 */}
+        {messageBoxVisible && (
+          <div className="message-box-overlay visible" onClick={hideMessage}>
+            <div className="message-box-content" onClick={(e) => e.stopPropagation()}>
+              <p>{messageBoxText}</p>
+              <button onClick={hideMessage}>확인</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

@@ -109,12 +109,37 @@ export interface TokenData {
 
 // 1. 인증 및 계정 관련 API
 /**
- * 구글 로그인 리다이렉트 (프론트엔드에서 직접 호출)
+ * 현재 도메인을 가져오는 함수
+ * @returns 현재 도메인 (프로토콜 포함)
  */
-export const redirectToGoogleLogin = (): void => {
+const getCurrentDomain = (): string => {
+  if (typeof window === 'undefined') {
+    // 서버 사이드에서는 환경변수 사용
+    return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  }
+  return `${window.location.protocol}//${window.location.host}`;
+};
+
+/**
+ * 구글 로그인 리다이렉트 (프론트엔드에서 직접 호출)
+ * @param successUrl 로그인 성공 시 리다이렉트할 URL (기본값: 현재 도메인)
+ * @param signupUrl 회원가입이 필요한 경우 리다이렉트할 URL (기본값: 현재 도메인/signup)
+ */
+export const redirectToGoogleLogin = (
+  successUrl?: string,
+  signupUrl?: string
+): void => {
   if (typeof window !== 'undefined') {
-    // 백엔드 로그인 엔드포인트로 리다이렉트 (콜백 URL은 백엔드가 처리)
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/login`;
+    const currentDomain = getCurrentDomain();
+    const finalSuccessUrl = successUrl || currentDomain;
+    const finalSignupUrl = signupUrl || `${currentDomain}/signup`;
+    
+    // 백엔드 로그인 엔드포인트로 리다이렉트 (success_url과 signup_url 파라미터 포함)
+    const loginUrl = new URL('/account/login', process.env.NEXT_PUBLIC_API_BASE_URL);
+    loginUrl.searchParams.set('success_url', finalSuccessUrl);
+    loginUrl.searchParams.set('signup_url', finalSignupUrl);
+    
+    window.location.href = loginUrl.toString();
   }
 };
 

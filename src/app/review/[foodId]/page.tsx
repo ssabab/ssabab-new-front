@@ -1,3 +1,4 @@
+/* // app/review/[foodId]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -5,21 +6,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useMenuStore, Menu as MenuType } from '@/store/MenuStore';
 import { submitFoodReviews, submitMenuReview, SubmitFoodReviewsPayload, SubmitMenuReviewPayload } from '@/api/ReviewApi';
 
-// --- 별점 평가 컴포넌트 ---
-const StarRating: React.FC<{ rating: number; onRating: (rating: number) => void }> = ({ rating, onRating }) => (
-  <div className="star-rating-item flex justify-center space-x-2 text-4xl cursor-pointer">
-    {[1, 2, 3, 4, 5].map((starValue) => (
-      <svg
-        key={starValue}
-        onClick={() => onRating(starValue)}
-        className={`w-10 h-10 fill-current star ${starValue <= rating ? 'filled' : ''}`}
-        viewBox="0 0 24 24"
-      >
-        <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 3.817 1.48-8.279L.002 9.306l8.332-1.151L12 .587z" />
-      </svg>
-    ))}
-  </div>
-);  
+// 변경된 컴포넌트 이름으로 임포트
+import FoodRatings from '@/component/review/FoodRatings';
+import RegretQuestion from '@/component/review/RegretQuestion';
+import ReviewText from '@/component/review/ReviewText';
+
 
 export default function DetailedReviewPage() {
   const params = useParams();
@@ -32,21 +23,18 @@ export default function DetailedReviewPage() {
   const [ratings, setRatings] = useState<Record<number, number>>({});
   const [wouldRegret, setWouldRegret] = useState<boolean | null>(null);
   const [reviewText, setReviewText] = useState('');
-  
+
   const [messageBoxVisible, setMessageBoxVisible] = useState(false);
   const [messageBoxText, setMessageBoxText] = useState('');
-  
+
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 컴포넌트가 언마운트될 때 body 스크롤을 항상 복원하도록 보장합니다.
   useEffect(() => {
-    // 이 useEffect는 마운트될 때 아무 작업도 하지 않습니다.
-    // 대신, 컴포넌트가 사라질 때 실행될 클린업 함수를 반환합니다.
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, []); // 의존성 배열을 비워 마운트 시 한 번만 실행되도록 합니다.
+  }, []);
 
   useEffect(() => {
     if (weeklyMenus.length === 0) {
@@ -72,7 +60,7 @@ export default function DetailedReviewPage() {
   const handleRatingChange = (foodId: number, rating: number) => {
     setRatings(prev => ({ ...prev, [foodId]: rating }));
   };
-  
+
   const showMessage = (message: string) => {
     setMessageBoxText(message);
     setMessageBoxVisible(true);
@@ -124,7 +112,7 @@ export default function DetailedReviewPage() {
 
       const totalScore = Object.values(finalRatings).reduce((sum, score) => sum + score, 0);
       const averageScore = menu.foods.length > 0 ? totalScore / menu.foods.length : 0;
-      
+
       const menuReviewPayload: SubmitMenuReviewPayload = {
         menuId,
         menuRegret: wouldRegret,
@@ -132,7 +120,7 @@ export default function DetailedReviewPage() {
         menuScore: parseFloat(averageScore.toFixed(2)),
       };
       await submitMenuReview(menuReviewPayload);
-      
+
       setSubmissionSuccess(true);
       document.body.style.overflow = 'hidden';
 
@@ -216,49 +204,23 @@ export default function DetailedReviewPage() {
               이 메뉴 어때요?
             </h1>
             <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow text-gray-600">오늘의 메뉴에 대한 당신의 소중한 의견을 들려주세요.</p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-8 w-full">
-              <div className="space-y-4">
-                {menu.foods.map((food) => (
-                  <div key={food.foodId} className="analysis-card flex justify-between items-center">
-                    <div className="flex-grow text-left">
-                      <label className="block text-2xl font-semibold text-gray-800">
-                        {food.foodName}
-                        <span className="text-gray-500 font-medium text-lg ml-2">({food.mainSub})</span>
-                      </label>
-                    </div>
-                    <StarRating rating={ratings[food.foodId] || 0} onRating={(rating) => handleRatingChange(food.foodId, rating)} />
-                  </div>
-                ))}
-              </div>
+              <FoodRatings
+                menu={menu}
+                ratings={ratings}
+                onRatingChange={handleRatingChange}
+              />
 
-              <div className="analysis-card">
-                <label className="block text-2xl font-bold text-gray-800 mb-4 text-center">
-                  해당 메뉴 선택에 만족하시나요?
-                </label>
-                <div className="flex justify-center space-x-4">
-                  <button type="button" onClick={() => setWouldRegret(false)} className={`regret-button flex-1 py-3 px-6 rounded-full text-lg font-semibold shadow-md flex items-center justify-center ${wouldRegret === false ? 'selected' : ''}`}>
-                    <span className="mr-2 text-2xl">👍</span> 네, 다시 선택할래요.
-                  </button>
-                  <button type="button" onClick={() => setWouldRegret(true)} className={`regret-button flex-1 py-3 px-6 rounded-full text-lg font-semibold shadow-md flex items-center justify-center ${wouldRegret === true ? 'selected' : ''}`}>
-                    <span className="mr-2 text-2xl">👏</span> 아니요, 다른거 먹을래요.
-                  </button>
-                </div>
-              </div>
+              <RegretQuestion
+                wouldRegret={wouldRegret}
+                setWouldRegret={setWouldRegret}
+              />
 
-              <div className="analysis-card">
-                <label htmlFor="overallReviewText" className="block text-2xl font-bold text-gray-800 mb-4 text-center">
-                  간략한 한 줄 의견
-                </label>
-                <textarea
-                  id="overallReviewText"
-                  rows={6}
-                  value={reviewText}
-                  onChange={(e) => setReviewText(e.target.value)}
-                  className="w-full p-4 border border-gray-300 rounded-lg shadow-inner focus:ring-blue-500 focus:border-blue-500 text-lg text-gray-800 placeholder-gray-400 resize-y"
-                  placeholder="오늘의 메뉴에 대한 솔직한 의견을 작성해주세요. (선택 사항)"
-                />
-              </div>
+              <ReviewText
+                reviewText={reviewText}
+                setReviewText={setReviewText}
+              />
 
               <div className="text-center mt-10">
                 <button type="submit" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-4 px-12 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-xl tracking-wide">
@@ -272,3 +234,4 @@ export default function DetailedReviewPage() {
     </div>
   );
 }
+*/

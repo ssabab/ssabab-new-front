@@ -1,10 +1,31 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { isLoggedIn } from '@/utils/auth';
 
 export default function Header() {
   const pathname = usePathname();
+  
+  // 🎯 간단한 로그인 상태 관리
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 🚀 인증 상태 확인 - 매우 간단!
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(isLoggedIn());
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+    
+    // 주기적으로 인증 상태 확인 (다른 탭에서 로그인/로그아웃 시)
+    const interval = setInterval(checkAuth, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -13,12 +34,29 @@ export default function Header() {
     return pathname.startsWith(path);
   };
 
-  const navItems = [
-    { href: '/', label: '홈' },
-    { href: '/main', label: '소개' },
-    { href: '/analysis', label: '분석보기' },
-    { href: '/mypage', label: '마이페이지' }
-  ];
+  // 로그인 상태에 따라 다른 네비게이션 아이템 생성
+  const getNavItems = () => {
+    const baseItems = [
+      { href: '/', label: '홈' },
+      { href: '/main', label: '소개' },
+      // { href: '/review', label: '평가하기' },
+      { href: '/analysis', label: '분석보기' },
+    ];
+
+    // 🎯 로딩 중이면 기본 아이템만 반환
+    if (isLoading) {
+      return baseItems;
+    }
+
+    // 로그인 상태에 따라 마지막 아이템 추가
+    if (isAuthenticated) {
+      return [...baseItems, { href: '/mypage', label: '마이페이지' }];
+    } else {
+      return [...baseItems, { href: '/login', label: '로그인' }];
+    }
+  };
+
+  const navItems = getNavItems();
 
   return (
     <header className="bg-white shadow-md py-4">

@@ -1,21 +1,12 @@
-// src/app/analysis/page.tsx
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React, { useState, useEffect, useCallback } from 'react';
-// Next.js에서 페이지 간 이동을 위해 'next/link' 컴포넌트를 사용하는 것이 일반적입니다.
-// <a href="..."> 대신 <Link href="...">를 사용하는 것을 권장합니다.
-// import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getCookieValue } from '@/api/MypageApi';
+import { isLoggedIn } from '@/utils/auth';  // 새로운 간단한 함수 사용
+import MonthlyAnalysis from '@/component/analysis/MonthlyAnalysis'; // 월간 분석 컴포넌트 임포트
+import PersonalAnalysis from '@/component/analysis/PersonalAnalysis'; // 개인 분석 컴포넌트 임포트
 
-/**
- * 쿠키에서 특정 키의 값을 가져오는 함수
- * @param key 가져올 쿠키의 키
- * @returns 쿠키 값 또는 undefined
- */
-function getCookieValue(key: string): string | undefined {
-  if (typeof document === 'undefined') return undefined;
-  const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : undefined;
-}
 // =================================================================
 // 월간 분석 (Monthly Analysis) 관련 타입
 // =================================================================
@@ -147,7 +138,15 @@ export interface PersonalAnalysisData {
   dm_user_insight: UserInsight;
   dm_user_group_comparison: UserGroupComparison;
 }
+
+
 export default function AnalysisPage() {
+  const router = useRouter();
+  
+  // 🎯 간단한 로그인 상태 확인
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  
   // 활성 탭 상태 관리: 'monthly' 또는 'personal'
   const [activeTab, setActiveTab] = useState('monthly');
   // 메시지 박스 상태 관리
@@ -162,6 +161,17 @@ export default function AnalysisPage() {
 
   // 백엔드 API 기본 URL (환경 변수 또는 기본값)
   const BACKEND_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+  // 🚀 인증 상태 확인 - 매우 간단!
+  useEffect(() => {
+    const checkAuth = () => {
+      const authenticated = isLoggedIn();
+      setIsAuthenticated(authenticated);
+      setIsAuthChecked(true);
+    };
+    
+    checkAuth();
+  }, []);
 
   // 메시지 박스 표시 함수
   const showMessage = (message: string) => {
@@ -191,7 +201,7 @@ export default function AnalysisPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError('월간 분석 데이터를 가져오는 데 실패했습니다: ' + message);
-      showMessage('월간 분석 데이터를 가져오는 데 실패했습니다.');
+      showMessage('월간 분석 데이터를 가져오는 데 실패했습니다: ' + message);
     } finally {
       setIsLoading(false);
     }
@@ -240,179 +250,36 @@ export default function AnalysisPage() {
     }
   }, [BACKEND_API_BASE_URL]);
 
+  // 🎯 개인 분석 탭 클릭 시 인증 확인 - 간단해졌습니다!
+  const handleTabChange = (tab: string) => {
+    if (tab === 'personal') {
+      if (!isAuthChecked) {
+        showMessage('인증 상태를 확인하고 있습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+      if (!isAuthenticated) {
+        showMessage('개인 분석을 보려면 로그인이 필요합니다.');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+        return;
+      }
+    }
+    setActiveTab(tab);
+  };
+
   // 탭 변경 시 데이터 로딩
   useEffect(() => {
     if (activeTab === 'monthly') {
       fetchMonthlyAnalysisData();
-    } else { // activeTab === 'personal'
-      fetchPersonalAnalysisData();
+    } else if (activeTab === 'personal') {
+      // 개인 분석은 인증된 사용자만 접근 가능
+      if (isAuthChecked && isAuthenticated) {
+        fetchPersonalAnalysisData();
+      }
     }
-  }, [activeTab, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
+  }, [activeTab, isAuthChecked, isAuthenticated, fetchMonthlyAnalysisData, fetchPersonalAnalysisData]);
 
-
-  // 월간 분석 콘텐츠 렌더링 함수
-  const renderMonthlyAnalysis = (data: MonthlyAnalysisData | null) => { // data 타입을 any로 변경하여 유연하게 사용
-    if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">월간 통계 요약</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800">
-            <p><strong>이번 달 방문자:</strong> {data.monthlyVisitors.current}명 (지난 달 {data.monthlyVisitors.previous}명)</p>
-            <p><strong>총 누적 방문자:</strong> {data.monthlyVisitors.totalCumulative}명</p>
-            <p><strong>이번 달 평가 수:</strong> {data.cumulativeEvaluations.currentMonth}건</p>
-            <p><strong>총 누적 평가 수:</strong> {data.cumulativeEvaluations.totalCumulative}건</p>
-            <p><strong>월간 평균 별점:</strong> {data.monthlyOverallRating.average.toFixed(2)} / 5</p>
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 TOP 5 음식</h2>
-          <div className="space-y-3 text-gray-800">
-            {data.topFoods.map((food, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{food.name}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-orange" style={{ width: `${(food.rating / 5) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{food.rating}점 ({food.reviews}개 리뷰)</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">이번 달 WORST 5 음식</h2>
-          <div className="space-y-3 text-gray-800">
-            {data.worstFoods.map((food, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{food.name}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-yellow" style={{ width: `${(food.rating / 5) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{food.rating}점 ({food.reviews}개 리뷰)</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 방문한 사용자</h2>
-          <ul className="list-disc list-inside space-y-2 text-lg text-gray-800">
-            {data.frequentVisitors.map((visitor, index: number) => (
-              <li key={index}><strong>{visitor.name}</strong>: {visitor.visits}회 방문 (마지막 방문: {visitor.lastVisit})</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  };
-
-  // 개인 분석 콘텐츠 렌더링 함수
-  const renderPersonalAnalysis = (data: PersonalAnalysisData | null) => { // data 타입을 any로 변경하여 유연하게 사용
-    if (!data) return null; // 데이터가 없으면 아무것도 렌더링하지 않음
-
-    const { dm_user_summary, dm_user_food_rating_rank_best, dm_user_food_rating_rank_worst, dm_user_category_stats, dm_user_tag_stats, dm_user_review_word, dm_user_insight, dm_user_group_comparison } = data;
-
-    const maxCategoryCount = Math.max(...dm_user_category_stats.map(stat => stat.count), 0);
-    const maxTagCount = Math.max(...dm_user_tag_stats.map(stat => stat.count), 0);
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">내 리뷰 요약</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-lg text-black text-center">
-            <p><strong>평균 점수:</strong><br/>{(dm_user_summary.avgScore?.toFixed(2)) ?? 'N/A'} / 5</p>
-            <p><strong>총 리뷰 수:</strong><br/>{dm_user_summary.totalReviews ?? 0}건</p>
-            <p><strong>사전 투표 수:</strong><br/>{dm_user_summary.preVoteCount ?? 0}회</p>
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 좋아하는 음식 TOP 5</h2>
-          <div className="space-y-3 text-gray-800">
-            {dm_user_food_rating_rank_best.map((food, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{food.foodName}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-blue" style={{ width: `${(food.foodScore / 5) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{food.foodScore.toFixed(1)}점</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">가장 싫어하는 음식 WORST 5</h2>
-          <div className="space-y-3 text-gray-800">
-            {dm_user_food_rating_rank_worst.map((food, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{food.foodName}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-green" style={{ width: `${(food.foodScore / 5) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{food.foodScore.toFixed(1)}점</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">카테고리별 리뷰 통계</h2>
-          <div className="space-y-3 text-gray-800">
-            {dm_user_category_stats.map((stat, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{stat.category}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-blue" style={{ width: `${(stat.count / maxCategoryCount) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{stat.count}회</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">태그별 리뷰 통계</h2>
-          <div className="space-y-3 text-gray-800">
-            {dm_user_tag_stats.map((stat, index: number) => (
-              <div key={index} className="flex items-center">
-                <span className="w-1/4 text-left font-medium">{stat.tag}</span>
-                <div className="w-2/4 graph-bar-container">
-                  <div className="graph-bar bar-green" style={{ width: `${(stat.count / maxTagCount) * 100}%` }}></div>
-                </div>
-                <span className="w-1/4 text-right text-sm font-semibold">{stat.count}회</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">자주 사용한 리뷰 단어</h2>
-          <ul className="list-disc list-inside space-y-2 text-lg flex flex-wrap gap-x-4 text-gray-800">
-            {dm_user_review_word.map((word, index: number) => (
-              <li key={index}><strong>{word.word}</strong>: {word.count}회</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">나의 식습관 인사이트</h2>
-          <p className="text-lg text-gray-800">{dm_user_insight.insight}</p>
-        </div>
-
-        <div className="analysis-card col-span-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">전체 사용자 그룹 비교</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-800 text-center">
-            <p><strong>평균 점수 (나/그룹):</strong><br/>{dm_user_group_comparison.userAvgScore?.toFixed(2) ?? 'N/A'} / {dm_user_group_comparison.groupAvgScore?.toFixed(2) ?? 'N/A'}</p>
-            <p><strong>다양성 점수 (나/그룹):</strong><br/>{dm_user_group_comparison.userDiversityScore?.toFixed(1) ?? 'N/A'} / {dm_user_group_comparison.groupDiversityScore?.toFixed(1) ?? 'N/A'}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -512,7 +379,7 @@ export default function AnalysisPage() {
         }
       `}</style>
 
-      <div className="section-gradient-yellow">
+      <div className="min-h-screen section-gradient-yellow">
         {/* Custom Message Box */}
         <div id="messageBoxOverlay" className={`message-box-overlay ${messageBoxVisible ? 'visible' : ''}`} onClick={hideMessage}>
           <div className="message-box-content">
@@ -524,7 +391,7 @@ export default function AnalysisPage() {
         <div id="analysisPageContent" className="py-16 md:py-24 px-4 text-white text-center">
           <div className="container mx-auto max-w-5xl rounded-lg p-6 md:p-10 flex flex-col items-center">
             <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-shadow">
-              오늘의 메뉴 데이터 분석
+              SSABAB 데이터 분석
             </h1>
             <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-shadow">
               맛있는 식사를 하셨나요? 오늘 드신 메뉴에 대한 소중한 의견을 남겨주세요.
@@ -536,7 +403,7 @@ export default function AnalysisPage() {
                 type="button"
                 id="monthlyAnalysisBtn"
                 className={`tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 ${activeTab === 'monthly' ? 'selected' : ''}`}
-                onClick={() => setActiveTab('monthly')}
+                onClick={() => handleTabChange('monthly')}
               >
                 월간 분석
               </button>
@@ -544,7 +411,7 @@ export default function AnalysisPage() {
                 type="button"
                 id="personalAnalysisBtn"
                 className={`tab-button py-3 px-8 rounded-full text-lg font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95 flex-1 ${activeTab === 'personal' ? 'selected' : ''}`}
-                onClick={() => setActiveTab('personal')}
+                onClick={() => handleTabChange('personal')}
               >
                 개인 분석
               </button>
@@ -555,7 +422,11 @@ export default function AnalysisPage() {
               {isLoading && <p className="text-gray-800 text-xl">데이터를 로드 중입니다...</p>}
               {error && <p className="text-red-600 text-xl">{error}</p>}
               {!isLoading && !error && (
-                activeTab === 'monthly' ? renderMonthlyAnalysis(monthlyData) : renderPersonalAnalysis(personalData)
+                activeTab === 'monthly' ? (
+                  <MonthlyAnalysis data={monthlyData} />
+                ) : (
+                  <PersonalAnalysis data={personalData} />
+                )
               )}
             </div>
           </div>

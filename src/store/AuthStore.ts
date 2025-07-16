@@ -30,6 +30,7 @@ interface AuthStoreState {
     isLoading: boolean;
     isAuthenticated: boolean;
     isAuthInitialized: boolean;
+    isInitializing: boolean; // 초기화 중 여부를 추가
     // 소셜 로그인 후 임시로 URL에서 받은 사용자 정보 저장 (회원가입 폼 초기화용)
     socialLoginTempData: {
         email?: string;
@@ -134,6 +135,7 @@ export const useAuthStore = create<AuthStoreState>()(
             isLoading: false,
             isAuthenticated: false,
             isAuthInitialized: false,
+            isInitializing: false,
             refreshToken: null,
             socialLoginTempData: null, // 초기값 설정
 
@@ -171,10 +173,11 @@ export const useAuthStore = create<AuthStoreState>()(
                     refreshToken: null,
                     user: null,
                     isAuthenticated: false,
+                    isInitializing: false,
                     socialLoginTempData: null, // 로그아웃 시 임시 데이터 초기화
                 });
-                api.post('/account/logout').catch((error) => {
-                    console.error('Logout API call failed:', error);
+                api.post('/account/logout').catch(() => {
+                    // 로그아웃 API 실패 시 무시
                 });
             },
 
@@ -183,10 +186,10 @@ export const useAuthStore = create<AuthStoreState>()(
             },
 
             initializeAuth: async () => {
-                // 이미 초기화가 완료되었다면 다시 실행하지 않음
-                if (get().isAuthInitialized) return;
+                // 이미 초기화가 완료되었거나 초기화 중이라면 다시 실행하지 않음
+                if (get().isAuthInitialized || get().isInitializing) return;
 
-                set({ isLoading: true }); // 초기화 시작 시 로딩 상태 설정
+                set({ isLoading: true, isInitializing: true }); // 초기화 시작 시 로딩 상태 설정
 
                 let currentAccessToken = getCookieValue('accessToken');
                 let currentRefreshToken = getCookieValue('refreshToken');
@@ -252,12 +255,10 @@ export const useAuthStore = create<AuthStoreState>()(
                                 });
                                 await get().fetchUserInfo(); // 리프레시 후 사용자 정보 조회
                             } catch (refreshError) {
-                                console.error('Token refresh failed:', refreshError);
                                 get().logout(); // 리프레시 실패 시 로그아웃 처리
                             }
                         }
                     } catch (error) {
-                        console.error('Token decoding or validation error during initializeAuth:', error);
                         get().logout(); // 토큰 디코딩/유효성 검사 실패 시 로그아웃 처리
                     }
                 } else {
@@ -271,27 +272,33 @@ export const useAuthStore = create<AuthStoreState>()(
                         });
                     }
                 }
-                set({ isAuthInitialized: true, isLoading: false }); // 인증 초기화 완료 및 로딩 해제
+                set({ isAuthInitialized: true, isLoading: false, isInitializing: false }); // 인증 초기화 완료 및 로딩 해제
             },
 
             checkAuthStatus: () => {
-                // initializeAuth가 대부분의 인증 상태 확인을 처리하므로,
-                // 이 함수는 단순히 현재 상태를 반환하거나 최소한의 확인만 수행
                 const currentToken = getCookieValue('accessToken');
-                const isAuthenticatedNow = !!currentToken;
-
-                set({
-                    token: currentToken,
-                    isAuthenticated: isAuthenticatedNow,
-                });
-
-                // initializeAuth에서 이미 fetchUserInfo를 호출하고 있으므로,
-                // 여기서는 추가적으로 호출하지 않아도 됨.
-                // 다만, isAuthInitialized가 true이고 user가 비어있다면 한 번 더 시도할 수 있음.
-                if (isAuthenticatedNow && !get().user && get().isAuthInitialized) {
-                    get().fetchUserInfo().catch(() => {/* handle error if needed */});
+                const state = get();
+                
+                // 토큰이 있지만 AuthStore 상태가 초기화되지 않았다면 초기화 실행
+                if (currentToken && !state.isAuthInitialized) {
+                    get().initializeAuth();
+                    return !!currentToken;
                 }
-                return isAuthenticatedNow;
+                
+                // 토큰과 상태가 일치하지 않는 경우 상태 업데이트
+                if (!!currentToken !== state.isAuthenticated) {
+                    set({
+                        token: currentToken,
+                        isAuthenticated: !!currentToken,
+                    });
+                    
+                    // 토큰이 있지만 사용자 정보가 없는 경우 다시 조회
+                    if (currentToken && !state.user) {
+                        get().fetchUserInfo().catch(() => {});
+                    }
+                }
+
+                return !!currentToken;
             },
 
             // 새로운 액션: 유저 정보 가져오기
@@ -305,12 +312,9 @@ export const useAuthStore = create<AuthStoreState>()(
                         socialLoginTempData: null, // 사용자 정보 가져오기 성공하면 임시 데이터 초기화
                     });
                 } catch (error) {
-                    console.error('Failed to fetch user info:', error);
+                    // 토큰은 있지만 사용자 정보 조회 실패 시 로그아웃 처리
+                    get().logout();
                     set({ isLoading: false });
-                    // 유저 정보 조회 실패 시 (예: 토큰은 있지만 유저 정보가 DB에 없는 신규 유저)
-                    // 이 시점에서 socialLoginTempData가 남아있다면 mypage/page.tsx에서 회원가입 폼을 띄울 것임.
-                    // 사용자 정보를 가져오지 못했으므로 user를 null로 설정하는 것도 고려할 수 있으나,
-                    // 이 경우 mypage/page.tsx에서 socialLoginTempData만으로도 폼을 띄울 수 있도록 유지.
                 }
             },
 
@@ -330,7 +334,6 @@ export const useAuthStore = create<AuthStoreState>()(
                         get().fetchUserInfo();
                     }
                 } catch (error) {
-                    console.error('Failed to update user info:', error);
                     set({ isLoading: false });
                     throw error; // 에러를 호출자에게 전파
                 }
@@ -359,7 +362,6 @@ export const useAuthStore = create<AuthStoreState>()(
                     // 토큰 저장 후 최신 사용자 정보를 가져옴
                     await get().fetchUserInfo();
                 } catch (error) {
-                    console.error('회원가입에 실패했습니다:', error);
                     get().logout(); // 실패 시 모든 인증 관련 상태를 초기화
                     throw error; // 에러를 상위로 전파하여 UI에서 처리하도록 함
                 } finally {
